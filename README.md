@@ -1,6 +1,8 @@
 # USS Survery 
 A simple EDMC Plugin that logs USS details through google form to a spreadsheet
 
+[results spreadheet](https://docs.google.com/spreadsheets/d/1_LsPtmXS7aUGYTJ-OomdE4gsYqkrYsmS7qzSpIUhQ4s/edit?usp=sharing)
+
 # Installation
 Download the [latest release](https://github.com/NoFoolLikeOne/EDMC-USS-Survey/repository/archive.zip?ref=master), open the archive (zip) and extract the folder  to your EDMC plugin folder.
 
