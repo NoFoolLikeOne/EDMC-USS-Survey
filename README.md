@@ -1,5 +1,7 @@
 # USS Survery 
-A simple EDMC Plugin that logs USS details through google form to a spreadsheet
+A simple EDMC Plugin that logs USS details through google form to a spreadsheet.
+
+NB This is a prototype. Subject to change
 
 [results spreadheet](https://docs.google.com/spreadsheets/d/1_LsPtmXS7aUGYTJ-OomdE4gsYqkrYsmS7qzSpIUhQ4s/edit?usp=sharing)
 
