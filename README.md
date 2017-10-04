@@ -6,7 +6,7 @@ NB This is a prototype. Subject to change
 [results spreadheet](https://docs.google.com/spreadsheets/d/1_LsPtmXS7aUGYTJ-OomdE4gsYqkrYsmS7qzSpIUhQ4s/edit?usp=sharing)
 
 # Installation
-Download the [latest release](https://github.com/NoFoolLikeOne/EDMC-USS-Survey/repository/archive.zip?ref=master), open the archive (zip) and extract the folder  to your EDMC plugin folder.
+Download the [latest release](https://github.com/NoFoolLikeOne/EDMC-USS-Survey/archive/1.0.zip), open the archive (zip) and extract the folder  to your EDMC plugin folder.
 
 * Windows: `%LOCALAPPDATA%\EDMarketConnector\plugins` (usually `C:\Users\you\AppData\Local\EDMarketConnector\plugins`).
 * Mac: `~/Library/Application Support/EDMarketConnector/plugins` (in Finder hold ⌥ and choose Go &rarr; Library to open your `~/Library` folder).
