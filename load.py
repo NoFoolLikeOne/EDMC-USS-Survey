@@ -5,8 +5,8 @@ import ttk
 import Tkinter as tk
 import requests
 import os
+from urllib import quote_plus
 
-from PIL import Image
 
 
 from config import applongname, appversion
@@ -51,7 +51,7 @@ def journal_entry(cmdr, system, station, entry):
 		this.uss=True
 		this.usstype=entry['USSType']
 		this.usslocal=entry['USSType_Localised']
-		this.threat=entry['USSThreat']
+		this.threat=str(entry['USSThreat'])
 		
 				
 		
@@ -61,9 +61,9 @@ def journal_entry(cmdr, system, station, entry):
 		if this.uss:
 			this.uss=False
 			
-			this.status['text']="Logging: "+this.usslocal+" "+entry['StarSystem']+" ("+entry['Body']+")"
-			url = "https://docs.google.com/forms/d/e/1FAIpQLScVk2LW6EkIW3hL8EhuLVI5j7jQ1ZmsYCLRxgCZlpHiN8JdcA/viewform?usp=pp_url&entry.582675236="+entry['StarSystem']+"&entry.413701316="+entry['Body']+"&entry.218543806="+this.usstype+"&entry.455413428="+this.usslocal+"&entry.790504343="+str(this.threat)
-			print url
+			this.status['text']="Logging: "+this.usslocal
+			url = "https://docs.google.com/forms/d/e/1FAIpQLScVk2LW6EkIW3hL8EhuLVI5j7jQ1ZmsYCLRxgCZlpHiN8JdcA/formResponse?usp=pp_url&entry.582675236="+quote_plus(entry['StarSystem'])+"&entry.413701316="+quote_plus(entry['Body'])+"&entry.218543806="+quote_plus(this.usstype)+"&entry.455413428="+quote_plus(this.usslocal)+"&entry.790504343="+quote_plus(this.threat)+"&submit=Submit"
+			#print url
 			r = requests.get(url)	
 		
 		
