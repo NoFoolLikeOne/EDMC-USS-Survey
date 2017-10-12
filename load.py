@@ -5,6 +5,7 @@ import ttk
 import Tkinter as tk
 import requests
 import os
+import uuid
 from urllib import quote_plus
 from  math import sqrt,pow,trunc
 
@@ -25,7 +26,7 @@ def getDistance(x1,y1,z1,x2,y2,z2):
 	return round(sqrt(pow(float(x2)-float(x1),2)+pow(float(y2)-float(y1),2)+pow(float(z2)-float(z1),2)),2)
 
 def get_patrol():
-	url="https://docs.google.com/spreadsheets/d/e/2PACX-1vS6PK6ZhVuNEPqmYXdBDd9hAwD7DYjg7SQmsRqcfLFBqNVexTD1Q43d6RKa1RBakZVvkcgF625FLCTP/pub?output=tsv"
+	url="https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_PnLpr4kRDqBOFlTezks1cULeJcGbn2PdHOYfQqEWcB1Am3XPvoV8jy2L-G_SHqX9Ta9QXph2O2z6/pub?output=tsv"
 	r = requests.get(url)
 	#print r.content
 	list={}
@@ -63,7 +64,7 @@ def plugin_start():
 	this.patrol=get_patrol()
 	merge_visited()
 	
-	print this.patrol
+	#print this.patrol
 	return myPlugin
 	
 
@@ -97,12 +98,36 @@ def findNearest(jumpsystem,list):
 		return None,None,None,None,None,None,None,None,None,None,None
 	
 	return nearest,n,list[nearest]["instructions"],list[nearest]["visits"],list[nearest]["x"],list[nearest]["y"],list[nearest]["z"]
+
+def edsmGetSystem(system):
+	url = 'https://www.edsm.net/api-v1/system?systemName='+quote_plus(system)+'&showCoordinates=1'		
+	print url
+	r = requests.get(url)
+	s =  r.json()
+	print s
+	return s["coords"]["x"],s["coords"]["y"],s["coords"]["z"]
+
+def getDistanceMerope(x1,y1,z1):
+	return round(sqrt(pow(float(-78.59375)-float(x1),2)+pow(float( -149.625)-float(y1),2)+pow(float(-340.53125)-float(z1),2)),2)		
 	
-def detect_hyperdiction(cmdr,timestamp,endjump,startjump=None):
+def getDistanceSol(x1,y1,z1):
+	return round(sqrt(pow(float(0)-float(x1),2)+pow(float(0)-float(y1),2)+pow(float(0)-float(z1),2)),2)			
+	
+def detect_hyperdiction(guid,cmdr,timestamp,endjump,startjump,targetjump,station=None):
 	if startjump == None:
 		print "No startjump event: Is that even possible"
+	if station == None:
+		station=""
 	if startjump == endjump:
+		startx,starty,startz=edsmGetSystem(startjump) 
+		endx,endy,endz=edsmGetSystem(targetjump) 
+		startmerope=getDistanceMerope(startx,starty,startz)
+		endmerope=getDistanceMerope(endx,endy,endz)
 		print "Hyperdiction detected."
+		url = "https://docs.google.com/forms/d/e/1FAIpQLSfDFsZiD1btBXSHOlw2rNK5wPbdX8fF7JBCtiflX8jPgJ-OqA/formResponse?usp=pp_url&entry.1282398650="+str(guid)+"&entry.2105897249="+quote_plus(cmdr)+"&entry.448120794="+quote_plus(startjump)+"&entry.1108314590="+str(startx)+"&entry.1352373541="+str(starty)+"&entry.440246589="+str(startz)+"&entry.2113660595="+quote_plus(station)+"&entry.163179951="+quote_plus(targetjump)+"&entry.549665465="+str(endx)+"&entry.1631305292="+str(endy)+"&entry.674481857="+str(endz)+"&entry.1752982672="+str(startmerope)+"&entry.659677957="+str(endmerope)+"&submit=Submit"
+		#print url
+		r = requests.get(url)	
+		print r		
 		# log it to a spreadheet
 		# show it in the status with a pre-filled link to the Canonn form.
 	
@@ -111,7 +136,9 @@ def detect_hyperdiction(cmdr,timestamp,endjump,startjump=None):
 	
 # Detect journal events
 def journal_entry(cmdr, system, station, entry):
-  
+
+	this.guid = uuid.uuid1()
+
 	try:
 		this.uss
 	except:
@@ -132,8 +159,10 @@ def journal_entry(cmdr, system, station, entry):
 			this.uss=False
 			
 			this.status['text']="Logging: "+this.usslocal
-			#url  = "https://docs.google.com/forms/d/e/1FAIpQLScVk2LW6EkIW3hL8EhuLVI5j7jQ1ZmsYCLRxgCZlpHiN8JdcA/formResponse?usp=pp_url&entry.106150081="+cmdr+"&entry.582675236="+quote_plus(entry['StarSystem'])+"&entry.413701316="+quote_plus(entry['Body'])+"&entry.218543806="+quote_plus(this.usstype)+"&entry.455413428=+"quote_plus(this.usslocal)+"&entry.790504343="+quote_plus(this.threat)+"&submit=Submit"
-			url = "https://docs.google.com/forms/d/e/1FAIpQLScVk2LW6EkIW3hL8EhuLVI5j7jQ1ZmsYCLRxgCZlpHiN8JdcA/formResponse?usp=pp_url&entry.106150081="+cmdr+"&entry.582675236="+quote_plus(entry['StarSystem'])+"&entry.413701316="+quote_plus(entry['Body'])+"&entry.218543806="+quote_plus(this.usstype)+"&entry.455413428="+quote_plus(this.usslocal)+"&entry.790504343="+quote_plus(this.threat)+"&submit=Submit"
+			sysx,sysy,sysz=edsmGetSystem(system) 
+			dmerope=getDistanceMerope(sysx,sysy,sysz)
+			dsol=getDistanceSol(sysx,sysy,sysz)
+			url = "https://docs.google.com/forms/d/e/1FAIpQLScVk2LW6EkIW3hL8EhuLVI5j7jQ1ZmsYCLRxgCZlpHiN8JdcA/formResponse?usp=pp_url&entry.1236915632="+str(this.guid)+"&entry.106150081="+cmdr+"&entry.582675236="+quote_plus(entry['StarSystem'])+"&entry.158339236="+str(sysx)+"&entry.608639155="+str(sysy)+"&entry.1737639503="+str(sysy)+"&entry.413701316="+quote_plus(entry['Body'])+"&entry.1398738264="+str(dsol)+"&entry.922392846="+str(dmerope)+"&entry.218543806="+quote_plus(this.usstype)+"&entry.455413428="+quote_plus(this.usslocal)+"&entry.790504343="+quote_plus(this.threat)+"&submit=Submit"
 			#print url
 			r = requests.get(url)	
 			print r
@@ -148,6 +177,7 @@ def journal_entry(cmdr, system, station, entry):
 			this.arrived=entry["timestamp"]
 			
 		this.startjump=system
+		this.endjump=entry["StarSystem"]
 		
 		try:	
 			#If the system we are jumping out of is one of the nearest then 
@@ -166,14 +196,18 @@ def journal_entry(cmdr, system, station, entry):
 			
 	
 	if entry['event'] == 'FSDJump':
-			detect_hyperdiction(cmdr,entry["timestamp"],entry["StarSystem"],this.startjump)
+			
 					
 			#set the arrival time for locgging
 			this.arrived=entry["timestamp"]
 			#we have coordinates so we can find the nearest system
 			this.jumpsystem = { "x": entry["StarPos"][0], "y": entry["StarPos"][1], "z": entry["StarPos"][2], "name": entry["StarSystem"] }	
 			print this.jumpsystem
+			
+			detect_hyperdiction(this.guid,cmdr,entry["timestamp"],entry["StarSystem"],this.startjump,this.endjump,station)
+			
 			merge_visited()
+			
 			this.nearest,distance,instructions,visits,x,y,z = findNearest(this.jumpsystem,this.patrol)
 			this.status['text']=this.nearest+" ("+str(distance)+")"
 
