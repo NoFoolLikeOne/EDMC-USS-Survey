@@ -1,8 +1,9 @@
 # USS Survery 
 A simple EDMC Plugin that logs USS details through google form to a spreadsheet.
 
-Additionally Logging Hyperdictions
-Displays nearest patrol system prioritise by least visited.
+*Additionally Logging Hyperdictions
+
+*Displays nearest patrol system prioritise by least visited.
 
 NB This is a prototype. Subject to change
 
