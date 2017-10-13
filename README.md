@@ -1,9 +1,15 @@
 # USS Survery 
 A simple EDMC Plugin that logs USS details through google form to a spreadsheet.
 
+Additionally Logging Hyperdictions
+Displays nearest patrol system prioritise by least visited.
+
 NB This is a prototype. Subject to change
 
-[results spreadheet](https://docs.google.com/spreadsheets/d/1_LsPtmXS7aUGYTJ-OomdE4gsYqkrYsmS7qzSpIUhQ4s/edit?usp=sharing)
+[USS results spreadheet](https://docs.google.com/spreadsheets/d/1_LsPtmXS7aUGYTJ-OomdE4gsYqkrYsmS7qzSpIUhQ4s/edit?usp=sharing)
+[Hyperdiction results spreadheet](https://docs.google.com/spreadsheets/d/1grRDdXb6-6W1oxAVzPvvqTQDiVuExqAnvR97Q7cvrMA/edit?usp=sharing)
+[Patrol Log spreadheet](https://docs.google.com/spreadsheets/d/1zlSh5fHg2ZM9fdLE4xl_GlPX0b0BFpbxarvKhRMUMi0/edit?usp=sharing)
+
 
 # Installation
 Download the [latest release](https://github.com/NoFoolLikeOne/EDMC-USS-Survey/archive/1.0.zip), open the archive (zip) and extract the folder  to your EDMC plugin folder.
