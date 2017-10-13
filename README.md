@@ -1,4 +1,4 @@
-# USS Survery 
+# USS Survey 
 A simple EDMC Plugin that logs USS details through google form to a spreadsheet.
 
 *Additionally Logging Hyperdictions
