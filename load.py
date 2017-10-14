@@ -8,7 +8,7 @@ import os
 import uuid
 from urllib import quote_plus
 from  math import sqrt,pow,trunc
-
+from ttkHyperlinkLabel import HyperlinkLabel
 
 from config import applongname, appversion
 import myNotebook as nb
@@ -18,6 +18,8 @@ import csv
 this = sys.modules[__name__]
 this.s = None
 this.prep = {}
+window=tk.Tk()
+window.withdraw()
 
 # Lets capture the plugin name we want the name - "EDMC -"
 myPlugin = "USS Survey"
@@ -61,18 +63,69 @@ def plugin_start():
 	Load Template plugin into EDMC
 	"""
 	
+	#Load Images we intend to use
+	this._IMG_VISITED = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'/tick3.gif')
+	this._IMG_IGNORE = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'/cross.gif')
+	this._IMG_CLIPBOARD = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'/clipboard.gif')
+	
 	this.patrol=get_patrol()
 	merge_visited()
 	
 	#print this.patrol
 	return myPlugin
 	
-
+def copy_patrol_to_clipboard(event):
+	window.clipboard_clear()  # clear clipboard contents
+	window.clipboard_append(this.nearest)  	
+	print "Clipping"
+	
+	
 def plugin_app(parent):
-	label = tk.Label(parent, text= myPlugin + ":")
-	this.status = tk.Label(parent, anchor=tk.W, text="Ready")
-		
-	return (label, this.status)
+
+	this.parent = parent
+	#create a new frame as a containier for the status
+	
+	this.frame = tk.Frame(parent)
+	#We want three columns, label, text, button
+	this.frame.columnconfigure(5, weight=1)
+	
+	# maybe we want to be able to change the labels?
+	this.label = tk.Label(this.frame, text=  "Patrol:")
+	#this.status = tk.Label(this.frame, anchor=tk.W, text="Getting current location")
+	this.status = HyperlinkLabel(this.frame, compound=tk.RIGHT, popup_copy = True)
+	this.status["url"] = None
+	
+	this.system = HyperlinkLabel(this.frame, compound=tk.RIGHT, popup_copy = True)
+	this.clipboard = tk.Label(this.frame, anchor=tk.W, image=this._IMG_CLIPBOARD)
+	this.clipboard.bind("<Button-1>", copy_patrol_to_clipboard)  
+	
+	this.description = tk.Message(this.frame,width=200)
+	this.report_label = tk.Label(this.frame, text=  "Report:")
+	this.report= HyperlinkLabel(this.frame, compound=tk.RIGHT, popup_copy = True)
+	this.report["text"]= None
+	this.status["url"] = None
+	
+	this.label.grid(row = 0, column = 0, sticky=tk.W)
+	this.status.grid(row = 0, column = 1, sticky=tk.W)
+	this.clipboard.grid(row = 0, column = 2, sticky=tk.W)
+#	this.tick.grid(row = 0, column = 3, sticky=tk.W)
+#	this.cross.grid(row = 0, column = 4, sticky=tk.W)
+	this.report_label.grid(row = 1, column = 0, sticky=tk.W)
+	this.report.grid(row = 1, column = 1, columnspan=3, sticky=tk.W)
+	this.description.grid(row = 2, column = 0, columnspan=4, sticky=tk.W)
+	
+	#this.label.grid_remove()
+	#this.status.grid_remove()
+	#this.clipboard.grid_remove()
+#	this.tick.grid_remove()
+#	this.cross.grid_remove()
+	this.description.grid_remove()
+	this.report.grid_remove()
+	this.report_label.grid_remove()
+	#label.grid(row = 1, column = 0, sticky=tk.W)
+	#this.status.grid(row = 1, column = 1, sticky=tk.W)
+	#this.icon.pack(side=RIGHT)
+	return this.frame
 
 def findNearest(jumpsystem,list):
 	#print list
@@ -127,9 +180,8 @@ def detect_hyperdiction(guid,cmdr,timestamp,endjump,startjump,targetjump,station
 		url = "https://docs.google.com/forms/d/e/1FAIpQLSfDFsZiD1btBXSHOlw2rNK5wPbdX8fF7JBCtiflX8jPgJ-OqA/formResponse?usp=pp_url&entry.1282398650="+str(guid)+"&entry.2105897249="+quote_plus(cmdr)+"&entry.448120794="+quote_plus(startjump)+"&entry.1108314590="+str(startx)+"&entry.1352373541="+str(starty)+"&entry.440246589="+str(startz)+"&entry.2113660595="+quote_plus(station)+"&entry.163179951="+quote_plus(targetjump)+"&entry.549665465="+str(endx)+"&entry.1631305292="+str(endy)+"&entry.674481857="+str(endz)+"&entry.1752982672="+str(startmerope)+"&entry.659677957="+str(endmerope)+"&submit=Submit"
 		#print url
 		r = requests.get(url)	
-		print r		
-		# log it to a spreadheet
-		# show it in the status with a pre-filled link to the Canonn form.
+		setHyperReport(url)
+		
 	
 	
 		
@@ -158,7 +210,7 @@ def journal_entry(cmdr, system, station, entry):
 		if this.uss:
 			this.uss=False
 			
-			this.status['text']="Logging: "+this.usslocal
+			#this.status['text']="Logging: "+this.usslocal
 			sysx,sysy,sysz=edsmGetSystem(system) 
 			dmerope=getDistanceMerope(sysx,sysy,sysz)
 			dsol=getDistanceSol(sysx,sysy,sysz)
@@ -166,6 +218,8 @@ def journal_entry(cmdr, system, station, entry):
 			#print url
 			r = requests.get(url)	
 			print r
+			setUssReport(system)
+		
 		
 	if entry['event'] == 'StartJump' and entry['JumpType'] == 'Hyperspace':
 			
@@ -202,12 +256,70 @@ def journal_entry(cmdr, system, station, entry):
 			this.arrived=entry["timestamp"]
 			#we have coordinates so we can find the nearest system
 			this.jumpsystem = { "x": entry["StarPos"][0], "y": entry["StarPos"][1], "z": entry["StarPos"][2], "name": entry["StarSystem"] }	
-			print this.jumpsystem
 			
-			detect_hyperdiction(this.guid,cmdr,entry["timestamp"],entry["StarSystem"],this.startjump,this.endjump,station)
-			
-			merge_visited()
-			
+			#detect_hyperdiction(this.guid,cmdr,entry["timestamp"],entry["StarSystem"],this.startjump,this.endjump,station)
+			merge_visited()		
+			try:
+				this.nearest
+			except:
+				this.nearest,distance,instructions,visits,x,y,z = findNearest(this.jumpsystem,this.patrol)
+			if this.nearest == entry["StarSystem"]:
+				#mark vistited
+				this.patrol[this.nearest]["visits"] += 1
+				setPatrolReport(entry)
+					
 			this.nearest,distance,instructions,visits,x,y,z = findNearest(this.jumpsystem,this.patrol)
-			this.status['text']=this.nearest+" ("+str(distance)+")"
+			detect_hyperdiction(this.guid,cmdr,entry["timestamp"],entry["StarSystem"],this.startjump,this.endjump,station)
+			setPatrol(this.nearest,distance,instructions)
 
+def setPatrolReport(entry):
+	this.report_label["text"] = "Patrol Report"
+	this.report["text"] = "Click to enter report for "+entry["StarSystem"]
+	this.report["url"] = "http://i.imgur.com/Hbh3VCt.jpg"
+	this.report_label.grid()
+	this.report.grid()
+			
+def setHyperReport(url):
+	this.report_label["text"] = "Hyperdiction"
+	this.report["text"] = "Report to Canonn"
+	this.report["url"] = "http://i.imgur.com/Hbh3VCt.jpg"
+	this.report_label.grid()
+	this.report.grid()			
+	
+def setUssReport(system):
+	this.report_label["text"] = "USS drop"
+	this.report["text"] = "Report to Canonn"
+	this.report["url"] = "https://docs.google.com/forms/d/e/1FAIpQLScsU0RZLWl2JPEW-Oy3D1FBGi2G7wGZTrFHe9mOIdLfX0wTEQ/viewform?entry.745898940="+quote_plus(system)+"&entry.829248547&entry.1395484353&entry.191907177"
+	this.report_label.grid()
+	this.report.grid()				
+			
+def setPatrol(nearest,distance,instructions):
+
+	print nearest
+	print distance
+	print instructions
+	if nearest == None:
+		this.status['text'] = "No patrol at this time" 
+		this.status['url'] = None
+		this.clipboard.grid_remove()
+		this.description.grid_remove()
+	else:
+		this.status['text'] = nearest + " (" + str(distance) +"ly)"
+		this.status['url'] = 'https://www.edsm.net/show-system?systemName=%s' % quote_plus(nearest)
+		
+		this.description["text"] = instructions
+		this.label.grid()
+		this.status.grid()
+		this.clipboard.grid()
+		this.description["width"]=this.parent.winfo_width()-10
+		this.description.grid()
+			
+def cmdr_data(data):
+	
+	#print data
+	this.jumpsystem = edsmGetSystem(data['lastSystem']['name'])
+	this.nearest,distance,instructions,visits,x,y,z = findNearest(this.jumpsystem,this.patrol)
+	setPatrol(this.nearest,distance,instructions)
+	#setStatus(nearest,distance,body,text,lat,long)
+
+	
