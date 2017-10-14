@@ -4,7 +4,7 @@ A simple EDMC Plugin that logs USS details through google form to a spreadsheet.
 * Additionally Logging of Hyperdictions
 * Displays nearest patrol system prioritise by least visited.
 
-![Screenshot](screenshot.jpg)
+![Screenshot](screenshot.png)
 
 
 # Usage
