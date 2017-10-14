@@ -267,16 +267,18 @@ def journal_entry(cmdr, system, station, entry):
 			if this.nearest == entry["StarSystem"]:
 				#mark vistited
 				this.patrol[this.nearest]["visits"] += 1
-				setPatrolReport(entry)
+				setPatrolReport(cmdr,entry)
 					
 			this.nearest,distance,instructions,visits,x,y,z = findNearest(this.jumpsystem,this.patrol)
 			detect_hyperdiction(this.guid,cmdr,entry["timestamp"],entry["StarSystem"],this.startjump,this.endjump,station)
 			setPatrol(this.nearest,distance,instructions)
 
-def setPatrolReport(entry):
+def setPatrolReport(cmdr,entry):
+	system=entry["StarSystem"]
 	this.report_label["text"] = "Patrol Report"
-	this.report["text"] = "Click to enter report for "+entry["StarSystem"]
-	this.report["url"] = "http://i.imgur.com/Hbh3VCt.jpg"
+	this.report["text"] = "Unknown report "+entry["StarSystem"]
+	#https://docs.google.com/forms/d/e/1FAIpQLSeWVPRUXbofwFho5kTqd9_YUzLu2Tv3iz58jccobYohLV2nlA/viewform?entry.391050800=LCU%20No%20Fool&entry.1859995282=SYSTEM&entry.2075217736=BODY&entry.578283301=LATLON
+	this.report["url"] = "https://docs.google.com/forms/d/e/1FAIpQLSeWVPRUXbofwFho5kTqd9_YUzLu2Tv3iz58jccobYohLV2nlA/viewform?entry.391050800="+quote_plus(cmdr)+"&entry.1859995282="+quote_plus(system)
 	this.report_label.grid()
 	this.report.grid()
 			
