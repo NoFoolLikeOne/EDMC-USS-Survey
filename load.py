@@ -110,13 +110,13 @@ def plugin_app(parent):
 	this.clipboard.grid(row = 0, column = 2, sticky=tk.W)
 #	this.tick.grid(row = 0, column = 3, sticky=tk.W)
 #	this.cross.grid(row = 0, column = 4, sticky=tk.W)
-	this.report_label.grid(row = 1, column = 0, sticky=tk.W)
-	this.report.grid(row = 1, column = 1, columnspan=3, sticky=tk.W)
-	this.description.grid(row = 2, column = 0, columnspan=4, sticky=tk.W)
+	this.report_label.grid(row = 2, column = 0, sticky=tk.W)
+	this.report.grid(row = 2, column = 1, columnspan=3, sticky=tk.W)
+	this.description.grid(row = 1, column = 0, columnspan=4, sticky=tk.W)
 	
-	#this.label.grid_remove()
-	#this.status.grid_remove()
-	#this.clipboard.grid_remove()
+	this.label.grid_remove()
+	this.status.grid_remove()
+	this.clipboard.grid_remove()
 #	this.tick.grid_remove()
 #	this.cross.grid_remove()
 	this.description.grid_remove()
@@ -180,7 +180,7 @@ def detect_hyperdiction(guid,cmdr,timestamp,endjump,startjump,targetjump,station
 		url = "https://docs.google.com/forms/d/e/1FAIpQLSfDFsZiD1btBXSHOlw2rNK5wPbdX8fF7JBCtiflX8jPgJ-OqA/formResponse?usp=pp_url&entry.1282398650="+str(guid)+"&entry.2105897249="+quote_plus(cmdr)+"&entry.448120794="+quote_plus(startjump)+"&entry.1108314590="+str(startx)+"&entry.1352373541="+str(starty)+"&entry.440246589="+str(startz)+"&entry.2113660595="+quote_plus(station)+"&entry.163179951="+quote_plus(targetjump)+"&entry.549665465="+str(endx)+"&entry.1631305292="+str(endy)+"&entry.674481857="+str(endz)+"&entry.1752982672="+str(startmerope)+"&entry.659677957="+str(endmerope)+"&submit=Submit"
 		#print url
 		r = requests.get(url)	
-		setHyperReport(url)
+		setHyperReport(startjump,targetjump)
 		
 	
 	
@@ -218,7 +218,8 @@ def journal_entry(cmdr, system, station, entry):
 			#print url
 			r = requests.get(url)	
 			print r
-			setUssReport(system)
+			if this.usstype == "$USS_Type_NonHuman;":
+				setUssReport(system,this.threat,entry["timestamp"])
 		
 		
 	if entry['event'] == 'StartJump' and entry['JumpType'] == 'Hyperspace':
@@ -279,17 +280,23 @@ def setPatrolReport(entry):
 	this.report_label.grid()
 	this.report.grid()
 			
-def setHyperReport(url):
+def setHyperReport(sysfrom,systo):
 	this.report_label["text"] = "Hyperdiction"
 	this.report["text"] = "Report to Canonn"
-	this.report["url"] = "http://i.imgur.com/Hbh3VCt.jpg"
+	this.report["url"] = "https://docs.google.com/forms/d/e/1FAIpQLSeQyYdpD79L7v0qL6JH09cfPZw_7QJ_3d526jweaS92VmK-ZQ/viewform?usp=pp_url&entry.1593923043="+quote_plus(sysfrom)+"&entry.1532195316="+quote_plus(systo)+"&entry.1157975236="+str(this.guid)
 	this.report_label.grid()
 	this.report.grid()			
 	
-def setUssReport(system):
-	this.report_label["text"] = "USS drop"
-	this.report["text"] = "Report to Canonn"
-	this.report["url"] = "https://docs.google.com/forms/d/e/1FAIpQLScsU0RZLWl2JPEW-Oy3D1FBGi2G7wGZTrFHe9mOIdLfX0wTEQ/viewform?entry.745898940="+quote_plus(system)+"&entry.829248547&entry.1395484353&entry.191907177"
+def setUssReport(system,threat,timestamp):
+	this.report_label["text"] = "NHSS USS"
+	this.report["text"] = "Report Thargoid activity to Canonn"
+	
+	# Timesytamp 2017-10-14T15:08:24Z
+	date,part=timestamp.split("T")
+	time=part[:5]
+	
+	this.report["url"] = "https://docs.google.com/forms/d/e/1FAIpQLScsU0RZLWl2JPEW-Oy3D1FBGi2G7wGZTrFHe9mOIdLfX0wTEQ/viewform?usp=pp_url&entry.745898940="+quote_plus(system)+"&entry.1910321643="+str(threat)+"&entry.829248547="+date+"&entry.1395484353="+time+"&entry.689381068="+str(this.guid)
+	#this.report["url"] = "https://docs.google.com/forms/d/e/1FAIpQLScsU0RZLWl2JPEW-Oy3D1FBGi2G7wGZTrFHe9mOIdLfX0wTEQ/viewform?entry.745898940="+quote_plus(system)+"&entry.829248547&entry.1395484353&entry.191907177"
 	this.report_label.grid()
 	this.report.grid()				
 			
@@ -316,8 +323,11 @@ def setPatrol(nearest,distance,instructions):
 			
 def cmdr_data(data):
 	
-	#print data
-	this.jumpsystem = edsmGetSystem(data['lastSystem']['name'])
+	print data['lastSystem']['name']
+	
+	
+	x,y,z = edsmGetSystem(data['lastSystem']['name'])
+	this.jumpsystem = { "x": x, "y": y, "z": z, "name": data['lastSystem']['name'] }	
 	this.nearest,distance,instructions,visits,x,y,z = findNearest(this.jumpsystem,this.patrol)
 	setPatrol(this.nearest,distance,instructions)
 	#setStatus(nearest,distance,body,text,lat,long)
