@@ -29,7 +29,7 @@ def getDistance(x1,y1,z1,x2,y2,z2):
 
 def get_patrol():
 	url="https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_PnLpr4kRDqBOFlTezks1cULeJcGbn2PdHOYfQqEWcB1Am3XPvoV8jy2L-G_SHqX9Ta9QXph2O2z6/pub?output=tsv"
-	r = requests.get(url)
+	r = requests.get(url, verify=False)
 	#print r.content
 	list={}
 	
@@ -43,7 +43,7 @@ def get_patrol():
 	
 def merge_visited():
 	url="https://docs.google.com/spreadsheets/d/e/2PACX-1vQo6ZKo_30HVPledftSo5_bjxdGYymTS2lycTjpmxUz4Q5WsrN0jV05VKo9y-IbY0I3J35kZSftYoS1/pub?output=tsv"
-	r = requests.get(url)
+	r = requests.get(url, verify=False)
 	#print r.content
 	
 	
@@ -179,7 +179,7 @@ def detect_hyperdiction(guid,cmdr,timestamp,endjump,startjump,targetjump,station
 		print "Hyperdiction detected."
 		url = "https://docs.google.com/forms/d/e/1FAIpQLSfDFsZiD1btBXSHOlw2rNK5wPbdX8fF7JBCtiflX8jPgJ-OqA/formResponse?usp=pp_url&entry.1282398650="+str(guid)+"&entry.2105897249="+quote_plus(cmdr)+"&entry.448120794="+quote_plus(startjump)+"&entry.1108314590="+str(startx)+"&entry.1352373541="+str(starty)+"&entry.440246589="+str(startz)+"&entry.2113660595="+quote_plus(station)+"&entry.163179951="+quote_plus(targetjump)+"&entry.549665465="+str(endx)+"&entry.1631305292="+str(endy)+"&entry.674481857="+str(endz)+"&entry.1752982672="+str(startmerope)+"&entry.659677957="+str(endmerope)+"&submit=Submit"
 		#print url
-		r = requests.get(url)	
+		r = requests.get(url, verify=False)	
 		setHyperReport(startjump,targetjump)
 		
 	
@@ -216,7 +216,7 @@ def journal_entry(cmdr, system, station, entry):
 			dsol=getDistanceSol(sysx,sysy,sysz)
 			url = "https://docs.google.com/forms/d/e/1FAIpQLScVk2LW6EkIW3hL8EhuLVI5j7jQ1ZmsYCLRxgCZlpHiN8JdcA/formResponse?usp=pp_url&entry.1236915632="+str(this.guid)+"&entry.106150081="+cmdr+"&entry.582675236="+quote_plus(entry['StarSystem'])+"&entry.158339236="+str(sysx)+"&entry.608639155="+str(sysy)+"&entry.1737639503="+str(sysy)+"&entry.413701316="+quote_plus(entry['Body'])+"&entry.1398738264="+str(dsol)+"&entry.922392846="+str(dmerope)+"&entry.218543806="+quote_plus(this.usstype)+"&entry.455413428="+quote_plus(this.usslocal)+"&entry.790504343="+quote_plus(this.threat)+"&submit=Submit"
 			#print url
-			r = requests.get(url)	
+			r = requests.get(url, verify=False)	
 			print r
 			if this.usstype == "$USS_Type_NonHuman;":
 				setUssReport(system,this.threat,entry["timestamp"])
@@ -240,7 +240,7 @@ def journal_entry(cmdr, system, station, entry):
 			if this.nearest == system:
 				try:
 					url = "https://docs.google.com/forms/d/e/1FAIpQLScmM7IuJAla_9LflBf-Bi7aNsIhbNkuh_3g6_Z2PL87zMzXGg/formResponse?usp=pp_url&entry.1836345870="+this.arrived+"&entry.25192571="+entry["timestamp"]+"&entry.424221764="+cmdr+"&entry.799655481="+system			
-					r = requests.get(url)	
+					r = requests.get(url, verify=False)	
 					print r
 					print "Jump started: " +cmdr+"  "+system
 				except:
