@@ -25,7 +25,7 @@ An EDMC Plugin that logs USS and Hyperdiction details through a google form to a
 
 
 # Installation
-Download the [latest release](https://github.com/NoFoolLikeOne/EDMC-USS-Survey/releases/download/2_3/EDMC-USS-Survey.zip), open the archive (zip) and extract the folder  to your EDMC plugin folder.
+Download the [latest release](https://github.com/NoFoolLikeOne/EDMC-USS-Survey/releases/download/2_3/EDMC-USS-Survey-2_3.zip), open the archive (zip) and extract the folder  to your EDMC plugin folder.
 
 Rename the folder to EDMC-USS-Survey
 
