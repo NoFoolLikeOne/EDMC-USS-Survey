@@ -24,6 +24,32 @@ window.withdraw()
 # Lets capture the plugin name we want the name - "EDMC -"
 myPlugin = "USS Survey"
 
+class HyperdictionDetector:
+	'Class for Detecting Hyperdictions'
+
+	def __init__(frame):
+		debug("Initiating Hyperdiction Detector")
+		self.frame=frame
+      
+	def StartJump(self,cmdr, system, station, entry):
+		debug("Starting Jump")
+		self.start_jump = system
+		self.target_jump = entry["StarSystem"]
+		self.station = station
+		self.timestamp = entry["timestamp"]
+
+	def fsdJump(self,cmdr, system, station, entry):
+		self.end_jump = system
+		if self.target_jump != self.end_jump:
+			debug("Hyperdiction Detected")
+		
+		
+
+
+def debug(value):
+	print "["+myPlugin+"] "+str(value)
+
+
 def getDistance(x1,y1,z1,x2,y2,z2):
 	return round(sqrt(pow(float(x2)-float(x1),2)+pow(float(y2)-float(y1),2)+pow(float(z2)-float(z1),2)),2)
 
@@ -39,13 +65,14 @@ def get_patrol():
 			list[system]={ "x": x, "y": y, "z": z, "instructions": instructions, "priority": 0, "visits": 0 }
 
 	return list
+
 	
-	
+
 def merge_visited():
 	url="https://docs.google.com/spreadsheets/d/e/2PACX-1vQo6ZKo_30HVPledftSo5_bjxdGYymTS2lycTjpmxUz4Q5WsrN0jV05VKo9y-IbY0I3J35kZSftYoS1/pub?output=tsv"
-	r = requests.get(url)
+	r = requests.get(url, verify=False)
 	#print r.content
-	
+	failed=0
 	
 	for line in r.content.split("\r\n"):
 		ts,arrived,departed,commander,system= line.split("\t")
@@ -54,9 +81,12 @@ def merge_visited():
 			if system != "System Name":
 				this.patrol[system]["visits"]+=1
 		except:
-			print "Failed: "+ system
+			failed += 1
+			#print "failed "+ system
 
+	debug(str(failed) + " visited systems not in patrol list")
 	return list	
+	
 		
 def plugin_start():
 	"""
@@ -76,8 +106,7 @@ def plugin_start():
 	
 def copy_patrol_to_clipboard(event):
 	window.clipboard_clear()  # clear clipboard contents
-	window.clipboard_append(this.nearest)  	
-	print "Clipping"
+	window.clipboard_append(this.clip)  	
 	
 	
 def plugin_app(parent):
@@ -145,7 +174,7 @@ def findNearest(jumpsystem,list):
 				nearest=key
 					#print "try: "+key+" "+str(n)+" "+str(p)
 			except:
-				print exception
+				debug(exception)
 					
 	if n == 999999:
 		return None,None,None,None,None,None,None,None,None,None,None
@@ -154,10 +183,10 @@ def findNearest(jumpsystem,list):
 
 def edsmGetSystem(system):
 	url = 'https://www.edsm.net/api-v1/system?systemName='+quote_plus(system)+'&showCoordinates=1'		
-	print url
+	#print url
 	r = requests.get(url)
 	s =  r.json()
-	print s
+	#print s
 	return s["coords"]["x"],s["coords"]["y"],s["coords"]["z"]
 
 def getDistanceMerope(x1,y1,z1):
@@ -168,7 +197,7 @@ def getDistanceSol(x1,y1,z1):
 	
 def detect_hyperdiction(guid,cmdr,timestamp,endjump,startjump,targetjump,station=None):
 	if startjump == None:
-		print "No startjump event: Is that even possible"
+		debug("No startjump event: Is that even possible")
 	if station == None:
 		station=""
 	if startjump == endjump:
@@ -176,14 +205,36 @@ def detect_hyperdiction(guid,cmdr,timestamp,endjump,startjump,targetjump,station
 		endx,endy,endz=edsmGetSystem(targetjump) 
 		startmerope=getDistanceMerope(startx,starty,startz)
 		endmerope=getDistanceMerope(endx,endy,endz)
-		print "Hyperdiction detected."
+		debug("Hyperdiction detected("+endjump+","+startjump+","+targetjump+")")
 		url = "https://docs.google.com/forms/d/e/1FAIpQLSfDFsZiD1btBXSHOlw2rNK5wPbdX8fF7JBCtiflX8jPgJ-OqA/formResponse?usp=pp_url&entry.1282398650="+str(guid)+"&entry.2105897249="+quote_plus(cmdr)+"&entry.448120794="+quote_plus(startjump)+"&entry.1108314590="+str(startx)+"&entry.1352373541="+str(starty)+"&entry.440246589="+str(startz)+"&entry.2113660595="+quote_plus(station)+"&entry.163179951="+quote_plus(targetjump)+"&entry.549665465="+str(endx)+"&entry.1631305292="+str(endy)+"&entry.674481857="+str(endz)+"&entry.1752982672="+str(startmerope)+"&entry.659677957="+str(endmerope)+"&submit=Submit"
 		#print url
 		r = requests.get(url)	
 		setHyperReport(startjump,targetjump)
 		
 	
+def patrol_start_jump(cmdr,arrival,departure,jstart,jend):
+	#if we are starting a jump that means we are preparing to go out of system
+	#So we can log where we have been provided that nearest=system
+	debug("patrol_start_jump("+cmdr+","+arrival+","+departure+","+jstart+","+jend+")")
 	
+	try:
+		this.targetsystem
+	except:
+		x,y,z = edsmGetSystem(jstart)
+		oldsystem = { "x": x, "y": y, "z": z, "name": jstart }			
+		this.targetsystem,distance,instructions,visits,x,y,z = findNearest(oldsystem,this.patrol)	
+
+	debug("Target System "+this.targetsystem)
+	
+	if this.targetsystem == jstart:
+		debug("leaving patrol system now")
+		try:
+			url = "https://docs.google.com/forms/d/e/1FAIpQLScmM7IuJAla_9LflBf-Bi7aNsIhbNkuh_3g6_Z2PL87zMzXGg/formResponse?usp=pp_url&entry.1836345870="+arrival+"&entry.25192571="+departure+"&entry.424221764="+cmdr+"&entry.799655481="+jstart			
+			r = requests.get(url)	
+			debug(r)
+			debug("Jump started: " +cmdr+"  "+jstart)
+		except:
+			debug("error sending "+url)
 		
 	
 # Detect journal events
@@ -191,6 +242,8 @@ def journal_entry(cmdr, system, station, entry):
 
 	this.guid = uuid.uuid1()
 
+	
+	
 	try:
 		this.uss
 	except:
@@ -217,13 +270,15 @@ def journal_entry(cmdr, system, station, entry):
 			url = "https://docs.google.com/forms/d/e/1FAIpQLScVk2LW6EkIW3hL8EhuLVI5j7jQ1ZmsYCLRxgCZlpHiN8JdcA/formResponse?usp=pp_url&entry.1236915632="+str(this.guid)+"&entry.106150081="+cmdr+"&entry.582675236="+quote_plus(entry['StarSystem'])+"&entry.158339236="+str(sysx)+"&entry.608639155="+str(sysy)+"&entry.1737639503="+str(sysy)+"&entry.413701316="+quote_plus(entry['Body'])+"&entry.1398738264="+str(dsol)+"&entry.922392846="+str(dmerope)+"&entry.218543806="+quote_plus(this.usstype)+"&entry.455413428="+quote_plus(this.usslocal)+"&entry.790504343="+quote_plus(this.threat)+"&submit=Submit"
 			#print url
 			r = requests.get(url)	
-			print r
+			debug(r)
 			if this.usstype == "$USS_Type_NonHuman;":
 				setUssReport(system,this.threat,entry["timestamp"])
 		
 		
 	if entry['event'] == 'StartJump' and entry['JumpType'] == 'Hyperspace':
 			
+		debug("StartJump Hyperspace")
+		debug(entry)
 		#When we start a jump we are leaving the system so we can log our jump
 		try:	
 			#we might have not captured the arrival because we were offline
@@ -231,47 +286,52 @@ def journal_entry(cmdr, system, station, entry):
 		except:
 			this.arrived=entry["timestamp"]
 			
-		this.startjump=system
-		this.endjump=entry["StarSystem"]
+		try:
+			this.startjump
+		except:
+			this.startjump=system	
+					
+		#needed for hyperdiction detector
+		this.targetjump=entry["StarSystem"]
 		
-		try:	
-			#If the system we are jumping out of is one of the nearest then 
-			# we need to log it otherwise dont both
-			if this.nearest == system:
-				try:
-					url = "https://docs.google.com/forms/d/e/1FAIpQLScmM7IuJAla_9LflBf-Bi7aNsIhbNkuh_3g6_Z2PL87zMzXGg/formResponse?usp=pp_url&entry.1836345870="+this.arrived+"&entry.25192571="+entry["timestamp"]+"&entry.424221764="+cmdr+"&entry.799655481="+system			
-					r = requests.get(url)	
-					print r
-					print "Jump started: " +cmdr+"  "+system
-				except:
-					print "error sending "+url 
-		except:	
-			print entry
-			
+		# When we start a jump we are exiting the current system
+		# but its circular because we cannot do an end jump without a 
+		# a start jump
+				
+		patrol_start_jump(cmdr,this.arrived,entry["timestamp"],system,entry["StarSystem"])
+		
 			
 	
 	if entry['event'] == 'FSDJump':
 			
-					
+			
+			debug("FSDJump")
+			debug(entry)
+			
 			#set the arrival time for locgging
 			this.arrived=entry["timestamp"]
 			#we have coordinates so we can find the nearest system
-			this.jumpsystem = { "x": entry["StarPos"][0], "y": entry["StarPos"][1], "z": entry["StarPos"][2], "name": entry["StarSystem"] }	
 			
-			#detect_hyperdiction(this.guid,cmdr,entry["timestamp"],entry["StarSystem"],this.startjump,this.endjump,station)
-			merge_visited()		
-			try:
-				this.nearest
-			except:
-				this.nearest,distance,instructions,visits,x,y,z = findNearest(this.jumpsystem,this.patrol)
-			if this.nearest == entry["StarSystem"]:
-				#mark vistited
-				this.patrol[this.nearest]["visits"] += 1
+			this.jumpsystem = { "x": entry["StarPos"][0], "y": entry["StarPos"][1], "z": entry["StarPos"][2], "name": entry["StarSystem"] }			
+			
+						
+			## we need to see if we arrived pre-merge
+			nearest,distance,instructions,visits,x,y,z = findNearest(this.jumpsystem,this.patrol)
+			this.targetsystem=nearest
+			
+			debug(this.targetsystem)
+			
+			#if we have arrived at the nearest
+			if nearest == entry["StarSystem"]:
+				#mark vistited for ourselves only so we can find the next nearest
+				this.patrol[nearest]["visits"] += 1
 				setPatrolReport(cmdr,entry)
-					
-			this.nearest,distance,instructions,visits,x,y,z = findNearest(this.jumpsystem,this.patrol)
-			detect_hyperdiction(this.guid,cmdr,entry["timestamp"],entry["StarSystem"],this.startjump,this.endjump,station)
-			setPatrol(this.nearest,distance,instructions)
+						
+			nearest,distance,instructions,visits,x,y,z = findNearest(this.jumpsystem,this.patrol)
+			this.clip=nearest ## copy for clipboard
+			
+			detect_hyperdiction(this.guid,cmdr,entry["timestamp"],entry["StarSystem"],this.startjump,this.targetjump,station)
+			setPatrol(nearest,distance,instructions)
 
 def setPatrolReport(cmdr,entry):
 	system=entry["StarSystem"]
@@ -304,9 +364,7 @@ def setUssReport(system,threat,timestamp):
 			
 def setPatrol(nearest,distance,instructions):
 
-	print nearest
-	print distance
-	print instructions
+	
 	if nearest == None:
 		this.status['text'] = "No patrol at this time" 
 		this.status['url'] = None
@@ -325,12 +383,15 @@ def setPatrol(nearest,distance,instructions):
 			
 def cmdr_data(data):
 	
-	print data['lastSystem']['name']
+	debug(data['lastSystem']['name'])
 	
 	
 	x,y,z = edsmGetSystem(data['lastSystem']['name'])
 	this.jumpsystem = { "x": x, "y": y, "z": z, "name": data['lastSystem']['name'] }	
+	
 	this.nearest,distance,instructions,visits,x,y,z = findNearest(this.jumpsystem,this.patrol)
+	this.clip=this.nearest
+	debug("cmdr_data setting nearest: "+this.nearest)
 	setPatrol(this.nearest,distance,instructions)
 	#setStatus(nearest,distance,body,text,lat,long)
 
