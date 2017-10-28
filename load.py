@@ -28,7 +28,8 @@ def getDistance(x1,y1,z1,x2,y2,z2):
 	return round(sqrt(pow(float(x2)-float(x1),2)+pow(float(y2)-float(y1),2)+pow(float(z2)-float(z1),2)),2)
 
 def get_patrol():
-	url="https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_PnLpr4kRDqBOFlTezks1cULeJcGbn2PdHOYfQqEWcB1Am3XPvoV8jy2L-G_SHqX9Ta9QXph2O2z6/pub?output=tsv"
+	#url="https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_PnLpr4kRDqBOFlTezks1cULeJcGbn2PdHOYfQqEWcB1Am3XPvoV8jy2L-G_SHqX9Ta9QXph2O2z6/pub?output=tsv"
+	url="https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_PnLpr4kRDqBOFlTezks1cULeJcGbn2PdHOYfQqEWcB1Am3XPvoV8jy2L-G_SHqX9Ta9QXph2O2z6/pub?gid=818300344&single=true&output=tsv"
 	r = requests.get(url, verify=False)
 	#print r.content
 	list={}
