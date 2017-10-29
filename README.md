@@ -30,7 +30,7 @@ You can also view the results on a the [Canonn 3D Map](https://map.canonn.techno
 
 
 # Installation
-Download the [latest release](https://github.com/NoFoolLikeOne/EDMC-USS-Survey/releases/download/2_3/EDMC-USS-Survey-2_3.zip), open the archive (zip) and extract the folder  to your EDMC plugin folder.
+Download the [latest release](https://github.com/NoFoolLikeOne/EDMC-USS-Survey/releases/download/2_4/EDMC-USS-Survey-2_4.zip), open the archive (zip) and extract the folder  to your EDMC plugin folder.
 
 Rename the folder to EDMC-USS-Survey
 
