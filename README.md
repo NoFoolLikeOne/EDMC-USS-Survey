@@ -23,9 +23,14 @@ An EDMC Plugin that logs USS and Hyperdiction details through a google form to a
 
 [Patrol Log spreadheet](https://docs.google.com/spreadsheets/d/1zlSh5fHg2ZM9fdLE4xl_GlPX0b0BFpbxarvKhRMUMi0/edit?usp=sharing)
 
+You can also view the results on a the [Canonn 3D Map](https://map.canonn.technology/all/)
+
+![Canonn Map](canonn3d.png)
+
+
 
 # Installation
-Download the [latest release](https://github.com/NoFoolLikeOne/EDMC-USS-Survey/releases/download/2_3/EDMC-USS-Survey-2_3.zip), open the archive (zip) and extract the folder  to your EDMC plugin folder.
+Download the [latest release](https://github.com/NoFoolLikeOne/EDMC-USS-Survey/releases/download/2_4/EDMC-USS-Survey-2_4.zip), open the archive (zip) and extract the folder  to your EDMC plugin folder.
 
 Rename the folder to EDMC-USS-Survey
 
