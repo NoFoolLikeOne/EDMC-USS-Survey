@@ -18,8 +18,8 @@ import csv
 this = sys.modules[__name__]
 this.s = None
 this.prep = {}
-window=tk.Tk()
-window.withdraw()
+#window=tk.Tk()
+#window.withdraw()
 
 # Lets capture the plugin name we want the name - "EDMC -"
 myPlugin = "USS Survey"
