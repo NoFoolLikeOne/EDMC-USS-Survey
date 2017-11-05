@@ -237,7 +237,7 @@ def get_patrol():
 	list={}
 	
 	for line in r.content.split("\n"):
-		system,earth,merope,x,y,z,instructions= line.split("\t")
+		perimiter,system,earth,merope,x,y,z,instructions= line.split("\t")[0:7]	
 		if system != "System":
 			list[system]={ "x": x, "y": y, "z": z, "instructions": instructions, "priority": 0, "visits": 0 }
 
@@ -246,7 +246,7 @@ def get_patrol():
 	
 
 def merge_visited():
-	url="https://docs.google.com/spreadsheets/d/e/2PACX-1vQS_KlvwvoGlEEUOvGpc8dwVo4ViOs1x8NJsVeMOvjfAe-xsJyT0ErBFLipMYPWIaTk8By2Zy26T8_l/pub?gid=159395757&single=true&output=tsv"
+	url="https://docs.google.com/spreadsheets/d/e/2PACX-1vQLtReZQbaSyNf8kFZlexFFQqpBzSGNiCr2DeidufZAFrYRertXI_q0AfJscZrTe1x8TkfRu0BhlUck/pub?gid=222743727&single=true&output=tsv"
 	r = requests.get(url, verify=False)
 	#print r.content
 	failed=0
