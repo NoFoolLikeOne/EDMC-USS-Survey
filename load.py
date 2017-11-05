@@ -21,7 +21,7 @@ import csv
 this = sys.modules[__name__]
 this.s = None
 this.prep = {}
-
+this.debuglevel=1
 
 # Lets capture the plugin name we want the name - "EDMC -"
 myPlugin = "USS Survey"
@@ -49,7 +49,7 @@ class USSDetector:
 		self.jumped=True
 	  
 	def ussDrop(self,cmdr, system, station, entry):
-		debug("USS Drop")
+		debug("USS Drop",2)
 		self.uss=True
 		self.usstype=entry['USSType']
 		self.usslocal=entry['USSType_Localised']
@@ -71,12 +71,12 @@ class USSDetector:
 			
 			# lets calculate how long it too before you saw that USS
 			minutes=dateDiffMinutes(self.arrival,self.timestamp)
-			debug("Minutes before USS = "+str(minutes))
+			debug("Minutes before USS = "+str(minutes,2))
 								
 			url = "https://docs.google.com/forms/d/e/1FAIpQLScVk2LW6EkIW3hL8EhuLVI5j7jQ1ZmsYCLRxgCZlpHiN8JdcA/formResponse?usp=pp_url&entry.1236915632="+str(this.guid)+"&entry.106150081="+cmdr+"&entry.582675236="+quote_plus(entry['StarSystem'])+"&entry.158339236="+str(self.sysx)+"&entry.608639155="+str(self.sysy)+"&entry.1737639503="+str(self.sysz)+"&entry.413701316="+quote_plus(entry['Body'])+"&entry.1398738264="+str(dsol)+"&entry.922392846="+str(dmerope)+"&entry.218543806="+quote_plus(self.usstype)+"&entry.455413428="+quote_plus(self.usslocal)+"&entry.790504343="+quote_plus(self.threat)+"&submit=Submit"
 			#print url
 			r = requests.get(url)	
-			debug(r)
+			debug(r,2)
 			if self.usstype == "$USS_Type_NonHuman;":
 				setUssReport(system,self.threat,entry["timestamp"])
 				
@@ -90,7 +90,7 @@ class HyperdictionDetector:
 		self.arrival=today.strftime("%Y/%m/%d %H:%M:%S")
       
 	def StartJump(self,cmdr, system, station, entry):
-		debug("Starting Jump")
+		debug("Starting Jump",2)
 		self.start_jump = system
 		self.target_jump = entry["StarSystem"]
 		self.station = station
@@ -102,12 +102,12 @@ class HyperdictionDetector:
 		self.end_jump = system
 		self.cmdr=cmdr
 		if self.target_jump != self.end_jump:
-			debug("Hyperdiction Detected")	
+			debug("Hyperdiction Detected",2)	
 			startx,starty,startz=edsmGetSystem(self.start_jump) 
 			endx,endy,endz=edsmGetSystem(self.target_jump) 
 			startmerope=getDistanceMerope(startx,starty,startz)
 			endmerope=getDistanceMerope(endx,endy,endz)
-			debug("Hyperdiction detected("+self.end_jump+","+self.start_jump+","+self.target_jump+")")
+			debug("Hyperdiction detected("+self.end_jump+","+self.start_jump+","+self.target_jump+")",2)
 			url = "https://docs.google.com/forms/d/e/1FAIpQLSfDFsZiD1btBXSHOlw2rNK5wPbdX8fF7JBCtiflX8jPgJ-OqA/formResponse?usp=pp_url&entry.1282398650="+str(guid)+"&entry.2105897249="+quote_plus(cmdr)+"&entry.448120794="+quote_plus(self.start_jump)+"&entry.1108314590="+str(startx)+"&entry.1352373541="+str(starty)+"&entry.440246589="+str(startz)+"&entry.163179951="+quote_plus(self.target_jump)+"&entry.549665465="+str(endx)+"&entry.1631305292="+str(endy)+"&entry.674481857="+str(endz)+"&entry.1752982672="+str(startmerope)+"&entry.659677957="+str(endmerope)+"&submit=Submit"
 			#print url
 			r = requests.get(url)	
@@ -131,7 +131,7 @@ class news:
 		
 	def getPost(self):
 		feed = requests.get(self.feed_url)	
-		debug(feed.content)
+		debug(feed.content,2)
 		
 		lines=[]
 		lines = feed.content.split("\r\n")
@@ -156,11 +156,11 @@ class Patrol:
 		today=datetime.datetime.now()
 		
 		self.arrival=today.strftime("%Y/%m/%d %H:%M:%S")
-		debug(self.arrival)
+		debug(self.arrival,2)
 		
 	def Location(self,cmdr, system, station, entry):		
 		self.cmdr=cmdr
-		debug("Setting Location")
+		debug("Setting Location",2)
 		self.system = { "x": entry["StarPos"][0], "y": entry["StarPos"][1], "z": entry["StarPos"][2], "name": entry["StarSystem"] }			
 		self.body = entry["Body"]
 		self.body_type = entry["BodyType"]
@@ -168,7 +168,7 @@ class Patrol:
 	
 	def FSDJump(self,cmdr, system, station, entry):
 		self.cmdr=cmdr
-		debug("Patrol Setting Location")
+		debug("Patrol Setting Location",2)
 		self.body = ""
 		self.body_type = ""
 		self.system = { "x": entry["StarPos"][0], "y": entry["StarPos"][1], "z": entry["StarPos"][2], "name": entry["StarSystem"] }		
@@ -184,7 +184,7 @@ class Patrol:
 		## system should already be set so no need to set it again
 		
 	def cmdrData(self,data):
-		debug(data)
+		debug(data,2)
 		x,y,z = edsmGetSystem(data["lastSystem"]["name"])
 		self.system = { "x": x, "y": y, "z": z, "name": data["lastSystem"]["name"] }	
 		self.showPatrol(data["commander"]["name"])
@@ -199,10 +199,10 @@ class Patrol:
 			setPatrolReport(cmdr,self.system["name"])
 			
 	def exitPoll(self,event):
-		debug("exitPoll")
-		debug(event)
-		#https://docs.google.com/forms/d/e/1FAIpQLSeK8nTeHfR7V1pYsr1dlFObwQ-BVXE1DvyCHqNNaTglLDW6bw/viewform?usp=pp_url&entry.813177329=SYSTEM&entry.1723656810=ARRIVED&entry.1218635359=Yes&entry.430344938=No&entry.514733933=Yes
-		url="https://docs.google.com/forms/d/e/1FAIpQLSeK8nTeHfR7V1pYsr1dlFObwQ-BVXE1DvyCHqNNaTglLDW6bw/viewform?usp=pp_url&entry.813177329="+quote_plus(self.nearest)+"&entry.1723656810="+self.arrival+"&entry.1218635359=Maybe&entry.514733933=Yes&entry.430344938=Nol&entry.1270833859="+quote_plus(self.cmdr)
+		debug("exitPoll",2)
+		instance=this.patrol[self.nearest]["instance"]
+		#https://docs.google.com/forms/d/e/1FAIpQLSeK8nTeHfR7V1pYsr1dlFObwQ-BVXE1DvyCHqNNaTglLDW6bw/viewform?usp=pp_url&entry.1270833859=CMDR&entry.841171500=INSTANCE&entry.813177329=SYSTEM&entry.1723656810=ARRIVAL&entry.1218635359=Yes&entry.430344938=Maybe&entry.514733933=No
+		url="https://docs.google.com/forms/d/e/1FAIpQLSeK8nTeHfR7V1pYsr1dlFObwQ-BVXE1DvyCHqNNaTglLDW6bw/viewform?usp=pp_url&entry.813177329="+quote_plus(self.nearest)+"&entry.1723656810="+self.arrival+"&entry.1218635359=Maybe&entry.514733933=Yes&entry.430344938=No&entry.1270833859="+quote_plus(self.cmdr)+"&entry.841171500="+quote_plus(instance)
 		webbrowser.open(url)
 		this.patrol[self.nearest]["visits"]+=1
 		self.showPatrol(self.cmdr)
@@ -223,30 +223,42 @@ def dateDiffMinutes(s1,s2):
 	
 	return (d2-d1).days	*24 *60
 		
-def debug(value):
-	print "["+myPlugin+"] "+str(value)
+def debug(value,level=1):
+	if this.debuglevel <= level:
+		print "["+myPlugin+"] "+str(value)
 
 
 def getDistance(x1,y1,z1,x2,y2,z2):
 	return round(sqrt(pow(float(x2)-float(x1),2)+pow(float(y2)-float(y1),2)+pow(float(z2)-float(z1),2)),2)
-
+	
 def get_patrol():
-	url="https://docs.google.com/spreadsheets/d/e/2PACX-1vQLtReZQbaSyNf8kFZlexFFQqpBzSGNiCr2DeidufZAFrYRertXI_q0AfJscZrTe1x8TkfRu0BhlUck/pub?gid=818300344&single=true&output=tsv"
+	url="https://docs.google.com/spreadsheets/d/e/2PACX-1vQLtReZQbaSyNf8kFZlexFFQqpBzSGNiCr2DeidufZAFrYRertXI_q0AfJscZrTe1x8TkfRu0BhlUck/pub?gid=222743727&single=true&output=tsv"
 	r = requests.get(url)
 	#print r.content
 	list={}
 	
 	for line in r.content.split("\n"):
-		perimiter,system,earth,merope,x,y,z,instructions= line.split("\t")[0:7]	
-		if system != "System":
-			list[system]={ "x": x, "y": y, "z": z, "instructions": instructions, "priority": 0, "visits": 0 }
+		a = []
+		a = line.split("\t")
+
+		try:
+			instance=a[0]
+			system = a[1]
+			x = a[2]
+			y = a[3]
+			z = a[4]
+			instructions = a[5]
+			if system != "System":
+				list[system]={ "x": x, "y": y, "z": z, "instructions": instructions, "priority": 0, "visits": 0, "instance": instance }
+		except:
+			debug(a,2)
 
 	return list
 
 	
 
 def merge_visited():
-	url="https://docs.google.com/spreadsheets/d/e/2PACX-1vQLtReZQbaSyNf8kFZlexFFQqpBzSGNiCr2DeidufZAFrYRertXI_q0AfJscZrTe1x8TkfRu0BhlUck/pub?gid=222743727&single=true&output=tsv"
+	url="https://docs.google.com/spreadsheets/d/e/2PACX-1vQS_KlvwvoGlEEUOvGpc8dwVo4ViOs1x8NJsVeMOvjfAe-xsJyT0ErBFLipMYPWIaTk8By2Zy26T8_l/pub?gid=159395757&single=true&output=tsv"
 	r = requests.get(url, verify=False)
 	#print r.content
 	failed=0
@@ -282,7 +294,7 @@ def merge_visited():
 			failed += 1
 			#print "failed "+ system
 
-	debug(str(failed) + " visited systems not in patrol list")
+	debug(str(failed) + " visited systems not in patrol list",2)
 	#debug(this.patrol)
 	return list	
 	
@@ -471,12 +483,13 @@ def journal_entry(cmdr, system, station, entry):
 		this.patrolZone.startUp(cmdr, system, station, entry)		
 
 def setPatrolReport(cmdr,system):
-	this.report_label["text"] = "Patrol Report"
-	this.report["text"] = "Unknown report "+system
+	debug("Patrol Report Disabled")
+	#this.report_label["text"] = "Patrol Report"
+	#this.report["text"] = "Unknown report "+system
 	#https://docs.google.com/forms/d/e/1FAIpQLSeWVPRUXbofwFho5kTqd9_YUzLu2Tv3iz58jccobYohLV2nlA/viewform?entry.391050800=LCU%20No%20Fool&entry.1859995282=SYSTEM&entry.2075217736=BODY&entry.578283301=LATLON
-	this.report["url"] = "https://docs.google.com/forms/d/e/1FAIpQLSeWVPRUXbofwFho5kTqd9_YUzLu2Tv3iz58jccobYohLV2nlA/viewform?entry.391050800="+quote_plus(cmdr)+"&entry.1859995282="+quote_plus(system)
-	this.report_label.grid()
-	this.report.grid()
+	#this.report["url"] = "https://docs.google.com/forms/d/e/1FAIpQLSeWVPRUXbofwFho5kTqd9_YUzLu2Tv3iz58jccobYohLV2nlA/viewform?entry.391050800="+quote_plus(cmdr)+"&entry.1859995282="+quote_plus(system)
+	#this.report_label.grid()
+	#this.report.grid()
 			
 def setHyperReport(sysfrom,systo):
 	this.report_label["text"] = "Hyperdiction"
