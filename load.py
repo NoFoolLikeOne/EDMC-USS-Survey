@@ -9,6 +9,9 @@ import uuid
 from urllib import quote_plus
 from  math import sqrt,pow,trunc
 from ttkHyperlinkLabel import HyperlinkLabel
+import datetime
+import webbrowser
+
 
 from config import applongname, appversion
 import myNotebook as nb
@@ -18,34 +21,208 @@ import csv
 this = sys.modules[__name__]
 this.s = None
 this.prep = {}
-window=tk.Tk()
-window.withdraw()
+
 
 # Lets capture the plugin name we want the name - "EDMC -"
 myPlugin = "USS Survey"
 
-class HyperdictionDetector:
+
+
+class USSDetector:
+	'Class for Detecting USS Drops'
+
+	def __init__(self,frame):
+		debug("Initiating USS Detector")
+		self.frame=frame
+		self.uss = False
+		today=datetime.datetime.now()
+		self.arrival=today.strftime("%Y/%m/%d %H:%M:%S")
+		## we might start in system and so never have jumped
+		self.jumped=False
+
+	def FSDJump(self,cmdr, system, station, entry):
+		self.arrival=entry["timestamp"].replace("T"," ").replace("-","/").replace("Z","")
+		self.sysx=entry["StarPos"][0]
+		self.sysy=entry["StarPos"][1]
+		self.sysz=entry["StarPos"][2]
+		# need to set this so we know we have coordinates available
+		self.jumped=True
+	  
+	def ussDrop(self,cmdr, system, station, entry):
+		debug("USS Drop")
+		self.uss=True
+		self.usstype=entry['USSType']
+		self.usslocal=entry['USSType_Localised']
+		self.threat=str(entry['USSThreat'])
+
+			
+	def SupercruiseExit(self,cmdr, system, station, entry):
+		if self.uss:
+			#This is a USS drop set back to false
+			self.uss=False
+						
+			if self.jumped == False:
+				self.sysx,self.sysy,self.sysz=edsmGetSystem(system)
+				
+				
+			dmerope=getDistanceMerope(self.sysx,self.sysy,self.sysz)
+			dsol=getDistanceSol(self.sysx,self.sysy,self.sysz)
+			self.timestamp=entry["timestamp"].replace("T"," ").replace("-","/").replace("Z","")
+			
+			# lets calculate how long it too before you saw that USS
+			minutes=dateDiffMinutes(self.arrival,self.timestamp)
+			debug("Minutes before USS = "+str(minutes))
+								
+			url = "https://docs.google.com/forms/d/e/1FAIpQLScVk2LW6EkIW3hL8EhuLVI5j7jQ1ZmsYCLRxgCZlpHiN8JdcA/formResponse?usp=pp_url&entry.1236915632="+str(this.guid)+"&entry.106150081="+cmdr+"&entry.582675236="+quote_plus(entry['StarSystem'])+"&entry.158339236="+str(self.sysx)+"&entry.608639155="+str(self.sysy)+"&entry.1737639503="+str(self.sysz)+"&entry.413701316="+quote_plus(entry['Body'])+"&entry.1398738264="+str(dsol)+"&entry.922392846="+str(dmerope)+"&entry.218543806="+quote_plus(self.usstype)+"&entry.455413428="+quote_plus(self.usslocal)+"&entry.790504343="+quote_plus(self.threat)+"&submit=Submit"
+			#print url
+			r = requests.get(url)	
+			debug(r)
+			if self.usstype == "$USS_Type_NonHuman;":
+				setUssReport(system,self.threat,entry["timestamp"])
+				
+class HyperdictionDetector:		
 	'Class for Detecting Hyperdictions'
 
-	def __init__(frame):
+	def __init__(self,frame):
 		debug("Initiating Hyperdiction Detector")
 		self.frame=frame
+		today=datetime.datetime.now()
+		self.arrival=today.strftime("%Y/%m/%d %H:%M:%S")
       
 	def StartJump(self,cmdr, system, station, entry):
 		debug("Starting Jump")
 		self.start_jump = system
 		self.target_jump = entry["StarSystem"]
 		self.station = station
-		self.timestamp = entry["timestamp"]
+		self.timestamp = entry["timestamp"].replace("T"," ").replace("-","/").replace("Z","")
+		self.cmdr=cmdr
+		
 
-	def fsdJump(self,cmdr, system, station, entry):
+	def FSDJump(self,cmdr, system, station, entry):
 		self.end_jump = system
+		self.cmdr=cmdr
 		if self.target_jump != self.end_jump:
-			debug("Hyperdiction Detected")
+			debug("Hyperdiction Detected")	
+			startx,starty,startz=edsmGetSystem(self.start_jump) 
+			endx,endy,endz=edsmGetSystem(self.target_jump) 
+			startmerope=getDistanceMerope(startx,starty,startz)
+			endmerope=getDistanceMerope(endx,endy,endz)
+			debug("Hyperdiction detected("+self.end_jump+","+self.start_jump+","+self.target_jump+")")
+			url = "https://docs.google.com/forms/d/e/1FAIpQLSfDFsZiD1btBXSHOlw2rNK5wPbdX8fF7JBCtiflX8jPgJ-OqA/formResponse?usp=pp_url&entry.1282398650="+str(guid)+"&entry.2105897249="+quote_plus(cmdr)+"&entry.448120794="+quote_plus(self.start_jump)+"&entry.1108314590="+str(startx)+"&entry.1352373541="+str(starty)+"&entry.440246589="+str(startz)+"&entry.163179951="+quote_plus(self.target_jump)+"&entry.549665465="+str(endx)+"&entry.1631305292="+str(endy)+"&entry.674481857="+str(endz)+"&entry.1752982672="+str(startmerope)+"&entry.659677957="+str(endmerope)+"&submit=Submit"
+			#print url
+			r = requests.get(url)	
+			setHyperReport(self.start_jump,self.target_jump)
+
+class news:
+	def __init__(self,frame):
+		debug("Initiating News")
+		self.feed_url="https://docs.google.com/spreadsheets/d/e/2PACX-1vTT7azBCL7FxjSEy1RBw52u1o3FXdQGIIpTlq1K1hMt5OHmDzJ_9Kjx3R952I9RrDWFC0NwHUPDlC9s/pub?gid=0&single=true&output=tsv"
+		this.description = tk.Message(frame,width=200)
+		this.news_label = tk.Label(frame, text=  "Report:")
+		this.newsitem= HyperlinkLabel(frame, compound=tk.RIGHT, popup_copy = True)
+		this.news_label.grid(row = 2, column = 0, sticky=tk.W)
+		this.newsitem.grid(row = 2, column = 1, columnspan=3, sticky=tk.W)	
+		this.newsitem["text"]= None
+		this.newsitem.grid_remove()
+		this.news_label.grid_remove()
+		self.getPost()
+		
+			
+		
+	def getPost(self):
+		feed = requests.get(self.feed_url)	
+		debug(feed.content)
+		
+		lines=[]
+		lines = feed.content.split("\r\n")
+		line = []
+		try:
+			line = lines[1].split("\t")
+			this.newsitem.grid()	
+			this.news_label.grid()	
+			
+			this.news_label["text"] = "news"
+			this.newsitem["text"] = line[0]
+			this.newsitem["url"] = line[1]
+
+		except:
+			this.newsitem.grid_remove()
+			this.news_label.grid_remove()	
+			
+class Patrol:
+	def __init__(self,frame):
+		debug("Initiating Patrol")
+		self.frame=frame
+		today=datetime.datetime.now()
+		
+		self.arrival=today.strftime("%Y/%m/%d %H:%M:%S")
+		debug(self.arrival)
+		
+	def Location(self,cmdr, system, station, entry):		
+		self.cmdr=cmdr
+		debug("Setting Location")
+		self.system = { "x": entry["StarPos"][0], "y": entry["StarPos"][1], "z": entry["StarPos"][2], "name": entry["StarSystem"] }			
+		self.body = entry["Body"]
+		self.body_type = entry["BodyType"]
+		self.showPatrol(cmdr)
+	
+	def FSDJump(self,cmdr, system, station, entry):
+		self.cmdr=cmdr
+		debug("Patrol Setting Location")
+		self.body = ""
+		self.body_type = ""
+		self.system = { "x": entry["StarPos"][0], "y": entry["StarPos"][1], "z": entry["StarPos"][2], "name": entry["StarSystem"] }		
+		self.arrival = entry["timestamp"].replace("T"," ").replace("-","/").replace("Z","")
+		self.showPatrol(cmdr)
 		
 		
-
-
+				
+	def SupercruiseExit(self,cmdr, system, station, entry):
+		self.cmdr=cmdr
+		self.body = entry["Body"]
+		self.body_type = entry["BodyType"]
+		## system should already be set so no need to set it again
+		
+	def cmdrData(self,data):
+		debug(data)
+		x,y,z = edsmGetSystem(data["lastSystem"]["name"])
+		self.system = { "x": x, "y": y, "z": z, "name": data["lastSystem"]["name"] }	
+		self.showPatrol(data["commander"]["name"])
+		
+	def showPatrol(self,cmdr):
+		merge_visited()
+		self.cmdr=cmdr
+		nearest,distance,instructions,visits,x,y,z = findNearest(self.system,this.patrol)
+		setPatrol(nearest,distance,instructions)
+		self.nearest=nearest
+		if distance == 0:
+			setPatrolReport(cmdr,self.system["name"])
+			
+	def exitPoll(self,event):
+		debug("exitPoll")
+		debug(event)
+		#https://docs.google.com/forms/d/e/1FAIpQLSeK8nTeHfR7V1pYsr1dlFObwQ-BVXE1DvyCHqNNaTglLDW6bw/viewform?usp=pp_url&entry.813177329=SYSTEM&entry.1723656810=ARRIVED&entry.1218635359=Yes&entry.430344938=No&entry.514733933=Yes
+		url="https://docs.google.com/forms/d/e/1FAIpQLSeK8nTeHfR7V1pYsr1dlFObwQ-BVXE1DvyCHqNNaTglLDW6bw/viewform?usp=pp_url&entry.813177329="+quote_plus(self.nearest)+"&entry.1723656810="+self.arrival+"&entry.1218635359=Maybe&entry.514733933=Yes&entry.430344938=Nol&entry.1270833859="+quote_plus(self.cmdr)
+		webbrowser.open(url)
+		this.patrol[self.nearest]["visits"]+=1
+		self.showPatrol(self.cmdr)
+		
+	def startUp(self,cmdr, system, station, entry):
+		self.arrival = entry["timestamp"].replace("T"," ").replace("-","/").replace("Z","")
+		x,y,z = edsmGetSystem(system)
+		self.system = { "x": x, "y": y, "z": z, "name": system }	
+		self.showPatrol(cmdr)		
+			
+		
+			
+	
+def dateDiffMinutes(s1,s2):
+	format="%Y/%m/%d %H:%M:%S"
+	d1=datetime.datetime.strptime(s1,format) 
+	d2=datetime.datetime.strptime(s2,format)
+	
+	return (d2-d1).days	*24 *60
+		
 def debug(value):
 	print "["+myPlugin+"] "+str(value)
 
@@ -54,7 +231,7 @@ def getDistance(x1,y1,z1,x2,y2,z2):
 	return round(sqrt(pow(float(x2)-float(x1),2)+pow(float(y2)-float(y1),2)+pow(float(z2)-float(z1),2)),2)
 
 def get_patrol():
-	url="https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_PnLpr4kRDqBOFlTezks1cULeJcGbn2PdHOYfQqEWcB1Am3XPvoV8jy2L-G_SHqX9Ta9QXph2O2z6/pub?output=tsv"
+	url="https://docs.google.com/spreadsheets/d/e/2PACX-1vQLtReZQbaSyNf8kFZlexFFQqpBzSGNiCr2DeidufZAFrYRertXI_q0AfJscZrTe1x8TkfRu0BhlUck/pub?gid=818300344&single=true&output=tsv"
 	r = requests.get(url)
 	#print r.content
 	list={}
@@ -69,22 +246,44 @@ def get_patrol():
 	
 
 def merge_visited():
-	url="https://docs.google.com/spreadsheets/d/e/2PACX-1vQo6ZKo_30HVPledftSo5_bjxdGYymTS2lycTjpmxUz4Q5WsrN0jV05VKo9y-IbY0I3J35kZSftYoS1/pub?output=tsv"
+	url="https://docs.google.com/spreadsheets/d/e/2PACX-1vQS_KlvwvoGlEEUOvGpc8dwVo4ViOs1x8NJsVeMOvjfAe-xsJyT0ErBFLipMYPWIaTk8By2Zy26T8_l/pub?gid=159395757&single=true&output=tsv"
 	r = requests.get(url, verify=False)
 	#print r.content
 	failed=0
 	
 	for line in r.content.split("\r\n"):
-		ts,arrived,departed,commander,system= line.split("\t")
+		sline = []
+		sline= line.split("\t")
+		
+		system=sline[1]
+		objective=sline[2]
+		remove=sline[5]
+		commander=sline[6]
+		
+		#debug(sline)
+		#debug(system)
+		#debug(objective)
+		
 		
 		try:
-			if system != "System Name":
-				this.patrol[system]["visits"]+=1
+			if system != "System":
+				if objective=="Yes":
+					this.patrol[system]["visits"]+=2
+					#debug(system+" obj: yes")
+				if objective=="Maybe":
+					this.patrol[system]["visits"]+=1					
+					#debug(system+" obj Maybe")
+			if system != "System" and commander == this.cmdr and remove == "Yes":			
+				#need to work on removal. In the meantime lets make it low priority
+				this.patrol[system]["visits"]+=10					
+				#debug(system+" obj Forget")
+				
 		except:
 			failed += 1
 			#print "failed "+ system
 
 	debug(str(failed) + " visited systems not in patrol list")
+	#debug(this.patrol)
 	return list	
 	
 		
@@ -97,6 +296,8 @@ def plugin_start():
 	this._IMG_VISITED = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'/tick3.gif')
 	this._IMG_IGNORE = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'/cross.gif')
 	this._IMG_CLIPBOARD = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'/clipboard.gif')
+	
+
 	
 	this.patrol=get_patrol()
 	merge_visited()
@@ -118,6 +319,11 @@ def plugin_app(parent):
 	#We want three columns, label, text, button
 	this.frame.columnconfigure(5, weight=1)
 	
+	this.ussInator = USSDetector(frame)
+	this.hyperdictionInator = HyperdictionDetector(frame)
+	this.patrolZone = Patrol(frame)
+	this.newsFeed = news(frame)
+	
 	# maybe we want to be able to change the labels?
 	this.label = tk.Label(this.frame, text=  "Patrol:")
 	#this.status = tk.Label(this.frame, anchor=tk.W, text="Getting current location")
@@ -126,6 +332,10 @@ def plugin_app(parent):
 	
 	this.system = HyperlinkLabel(this.frame, compound=tk.RIGHT, popup_copy = True)
 	this.clipboard = tk.Label(this.frame, anchor=tk.W, image=this._IMG_CLIPBOARD)
+	this.cross = tk.Label(this.frame, anchor=tk.W, image=this._IMG_IGNORE)
+	
+	#tk.text_widget.window_create("insert", window=image_link)
+	
 	this.clipboard.bind("<Button-1>", copy_patrol_to_clipboard)  
 	
 	this.description = tk.Message(this.frame,width=200)
@@ -138,7 +348,7 @@ def plugin_app(parent):
 	this.status.grid(row = 0, column = 1, sticky=tk.W)
 	this.clipboard.grid(row = 0, column = 2, sticky=tk.W)
 #	this.tick.grid(row = 0, column = 3, sticky=tk.W)
-#	this.cross.grid(row = 0, column = 4, sticky=tk.W)
+	this.cross.grid(row = 0, column = 3, sticky=tk.W)
 	this.report_label.grid(row = 2, column = 0, sticky=tk.W)
 	this.report.grid(row = 2, column = 1, columnspan=3, sticky=tk.W)
 	this.description.grid(row = 1, column = 0, columnspan=4, sticky=tk.W)
@@ -147,10 +357,11 @@ def plugin_app(parent):
 	this.status.grid_remove()
 	this.clipboard.grid_remove()
 #	this.tick.grid_remove()
-#	this.cross.grid_remove()
+	this.cross.grid_remove()
 	this.description.grid_remove()
 	this.report.grid_remove()
 	this.report_label.grid_remove()
+	this.cross.bind("<Button-1>", this.patrolZone.exitPoll)  
 	#label.grid(row = 1, column = 0, sticky=tk.W)
 	#this.status.grid(row = 1, column = 1, sticky=tk.W)
 	#this.icon.pack(side=RIGHT)
@@ -194,149 +405,74 @@ def getDistanceMerope(x1,y1,z1):
 	
 def getDistanceSol(x1,y1,z1):
 	return round(sqrt(pow(float(0)-float(x1),2)+pow(float(0)-float(y1),2)+pow(float(0)-float(z1),2)),2)			
-	
-def detect_hyperdiction(guid,cmdr,timestamp,endjump,startjump,targetjump,station=None):
-	if startjump == None:
-		debug("No startjump event: Is that even possible")
-	if station == None:
-		station=""
-	if startjump == endjump:
-		startx,starty,startz=edsmGetSystem(startjump) 
-		endx,endy,endz=edsmGetSystem(targetjump) 
-		startmerope=getDistanceMerope(startx,starty,startz)
-		endmerope=getDistanceMerope(endx,endy,endz)
-		debug("Hyperdiction detected("+endjump+","+startjump+","+targetjump+")")
-		url = "https://docs.google.com/forms/d/e/1FAIpQLSfDFsZiD1btBXSHOlw2rNK5wPbdX8fF7JBCtiflX8jPgJ-OqA/formResponse?usp=pp_url&entry.1282398650="+str(guid)+"&entry.2105897249="+quote_plus(cmdr)+"&entry.448120794="+quote_plus(startjump)+"&entry.1108314590="+str(startx)+"&entry.1352373541="+str(starty)+"&entry.440246589="+str(startz)+"&entry.2113660595="+quote_plus(station)+"&entry.163179951="+quote_plus(targetjump)+"&entry.549665465="+str(endx)+"&entry.1631305292="+str(endy)+"&entry.674481857="+str(endz)+"&entry.1752982672="+str(startmerope)+"&entry.659677957="+str(endmerope)+"&submit=Submit"
-		#print url
-		r = requests.get(url)	
-		setHyperReport(startjump,targetjump)
 		
-	
-def patrol_start_jump(cmdr,arrival,departure,jstart,jend):
-	#if we are starting a jump that means we are preparing to go out of system
-	#So we can log where we have been provided that nearest=system
-	debug("patrol_start_jump("+cmdr+","+arrival+","+departure+","+jstart+","+jend+")")
-	
-	try:
-		this.targetsystem
-	except:
-		x,y,z = edsmGetSystem(jstart)
-		oldsystem = { "x": x, "y": y, "z": z, "name": jstart }			
-		this.targetsystem,distance,instructions,visits,x,y,z = findNearest(oldsystem,this.patrol)	
+# def patrol_start_jump(cmdr,arrival,departure,jstart,jend):
 
-	debug("Target System "+this.targetsystem)
+	# debug("patrol_start_jump("+cmdr+","+arrival+","+departure+","+jstart+","+jend+")")
 	
-	if this.targetsystem == jstart:
-		debug("leaving patrol system now")
-		try:
-			url = "https://docs.google.com/forms/d/e/1FAIpQLScmM7IuJAla_9LflBf-Bi7aNsIhbNkuh_3g6_Z2PL87zMzXGg/formResponse?usp=pp_url&entry.1836345870="+arrival+"&entry.25192571="+departure+"&entry.424221764="+cmdr+"&entry.799655481="+jstart			
-			r = requests.get(url)	
-			debug(r)
-			debug("Jump started: " +cmdr+"  "+jstart)
-		except:
-			debug("error sending "+url)
+	# try:
+		# this.targetsystem
+	# except:
+		# x,y,z = edsmGetSystem(jstart)
+		# oldsystem = { "x": x, "y": y, "z": z, "name": jstart }			
+		# this.targetsystem,distance,instructions,visits,x,y,z = findNearest(oldsystem,this.patrol)	
+
+	# debug("Target System "+this.targetsystem)
+	
+	# if this.targetsystem == jstart:
+		# debug("leaving patrol system now")
+		# try:
+			# url = "https://docs.google.com/forms/d/e/1FAIpQLScmM7IuJAla_9LflBf-Bi7aNsIhbNkuh_3g6_Z2PL87zMzXGg/formResponse?usp=pp_url&entry.1836345870="+arrival+"&entry.25192571="+departure+"&entry.424221764="+cmdr+"&entry.799655481="+jstart			
+			# r = requests.get(url)	
+			# debug(r)
+			# debug("Jump started: " +cmdr+"  "+jstart)
+		# except:
+			# debug("error sending "+url)
 		
 	
 # Detect journal events
 def journal_entry(cmdr, system, station, entry):
 
 	this.guid = uuid.uuid1()
-
-	
-	
-	try:
-		this.uss
-	except:
-		this.uss=False
-		
+	this.cmdr=cmdr
+	  
+	this.newsFeed.getPost()  
 	  
 	if entry['event'] == 'USSDrop':
-		#set some variables for logging when we exit supercruise
-		this.uss=True
-		this.usstype=entry['USSType']
-		this.usslocal=entry['USSType_Localised']
-		this.threat=str(entry['USSThreat'])
-			
+		this.ussInator.ussDrop(cmdr, system, station, entry)
 		
 	if entry['event'] == 'SupercruiseExit':
 		# we need to check if we dropped from a uss
-		if this.uss:
-			this.uss=False
-			
-			#this.status['text']="Logging: "+this.usslocal
-			sysx,sysy,sysz=edsmGetSystem(system) 
-			dmerope=getDistanceMerope(sysx,sysy,sysz)
-			dsol=getDistanceSol(sysx,sysy,sysz)
-			url = "https://docs.google.com/forms/d/e/1FAIpQLScVk2LW6EkIW3hL8EhuLVI5j7jQ1ZmsYCLRxgCZlpHiN8JdcA/formResponse?usp=pp_url&entry.1236915632="+str(this.guid)+"&entry.106150081="+cmdr+"&entry.582675236="+quote_plus(entry['StarSystem'])+"&entry.158339236="+str(sysx)+"&entry.608639155="+str(sysy)+"&entry.1737639503="+str(sysz)+"&entry.413701316="+quote_plus(entry['Body'])+"&entry.1398738264="+str(dsol)+"&entry.922392846="+str(dmerope)+"&entry.218543806="+quote_plus(this.usstype)+"&entry.455413428="+quote_plus(this.usslocal)+"&entry.790504343="+quote_plus(this.threat)+"&submit=Submit"
-			#print url
-			r = requests.get(url)	
-			debug(r)
-			if this.usstype == "$USS_Type_NonHuman;":
-				setUssReport(system,this.threat,entry["timestamp"])
-		
+		this.ussInator.SupercruiseExit(cmdr, system, station, entry)		
 		
 	if entry['event'] == 'StartJump' and entry['JumpType'] == 'Hyperspace':
 			
 		debug("StartJump Hyperspace")
 		debug(entry)
-		#When we start a jump we are leaving the system so we can log our jump
-		try:	
-			#we might have not captured the arrival because we were offline
-			this.arrived
-		except:
-			this.arrived=entry["timestamp"]
-			
-		try:
-			this.startjump
-		except:
-			this.startjump=system	
-					
-		#needed for hyperdiction detector
-		this.targetjump=entry["StarSystem"]
 		
-		# When we start a jump we are exiting the current system
-		# but its circular because we cannot do an end jump without a 
-		# a start jump
+		this.hyperdictionInator.StartJump(cmdr, system, station, entry)
+						
+		#patrol_start_jump(cmdr,this.arrived,entry["timestamp"],system,entry["StarSystem"])
 				
-		patrol_start_jump(cmdr,this.arrived,entry["timestamp"],system,entry["StarSystem"])
-		
-			
 	
 	if entry['event'] == 'FSDJump':
 			
+		debug("FSDJump")
+		debug(entry)
 			
-			debug("FSDJump")
-			debug(entry)
-			
-			#set the arrival time for locgging
-			this.arrived=entry["timestamp"]
-			#we have coordinates so we can find the nearest system
-			
-			this.jumpsystem = { "x": entry["StarPos"][0], "y": entry["StarPos"][1], "z": entry["StarPos"][2], "name": entry["StarSystem"] }			
-			
-						
-			## we need to see if we arrived pre-merge
-			nearest,distance,instructions,visits,x,y,z = findNearest(this.jumpsystem,this.patrol)
-			this.targetsystem=nearest
-			
-			debug(this.targetsystem)
-			
-			#if we have arrived at the nearest
-			if nearest == entry["StarSystem"]:
-				#mark vistited for ourselves only so we can find the next nearest
-				this.patrol[nearest]["visits"] += 1
-				setPatrolReport(cmdr,entry)
-						
-			nearest,distance,instructions,visits,x,y,z = findNearest(this.jumpsystem,this.patrol)
-			this.clip=nearest ## copy for clipboard
-			
-			detect_hyperdiction(this.guid,cmdr,entry["timestamp"],entry["StarSystem"],this.startjump,this.targetjump,station)
-			setPatrol(nearest,distance,instructions)
+		this.ussInator.FSDJump(cmdr, system, station, entry)
+		this.hyperdictionInator.FSDJump(cmdr, system, station, entry)	
+		this.patrolZone.FSDJump(cmdr, system, station, entry)
+	
+	if entry['event'] == 'Location':
+		this.patrolZone.Location(cmdr, system, station, entry)
+		
+	if entry['event'] == 'StartUp':
+		this.patrolZone.startUp(cmdr, system, station, entry)		
 
-def setPatrolReport(cmdr,entry):
-	system=entry["StarSystem"]
+def setPatrolReport(cmdr,system):
 	this.report_label["text"] = "Patrol Report"
-	this.report["text"] = "Unknown report "+entry["StarSystem"]
+	this.report["text"] = "Unknown report "+system
 	#https://docs.google.com/forms/d/e/1FAIpQLSeWVPRUXbofwFho5kTqd9_YUzLu2Tv3iz58jccobYohLV2nlA/viewform?entry.391050800=LCU%20No%20Fool&entry.1859995282=SYSTEM&entry.2075217736=BODY&entry.578283301=LATLON
 	this.report["url"] = "https://docs.google.com/forms/d/e/1FAIpQLSeWVPRUXbofwFho5kTqd9_YUzLu2Tv3iz58jccobYohLV2nlA/viewform?entry.391050800="+quote_plus(cmdr)+"&entry.1859995282="+quote_plus(system)
 	this.report_label.grid()
@@ -378,21 +514,13 @@ def setPatrol(nearest,distance,instructions):
 		this.label.grid()
 		this.status.grid()
 		this.clipboard.grid()
+		this.cross.grid()
+		this.description["width"]=100
 		this.description["width"]=this.parent.winfo_width()-10
 		this.description.grid()
 			
 def cmdr_data(data):
+	this.patrolZone.cmdrData(data)
 	
-	debug(data['lastSystem']['name'])
-	
-	
-	x,y,z = edsmGetSystem(data['lastSystem']['name'])
-	this.jumpsystem = { "x": x, "y": y, "z": z, "name": data['lastSystem']['name'] }	
-	
-	this.nearest,distance,instructions,visits,x,y,z = findNearest(this.jumpsystem,this.patrol)
-	this.clip=this.nearest
-	debug("cmdr_data setting nearest: "+this.nearest)
-	setPatrol(this.nearest,distance,instructions)
-	#setStatus(nearest,distance,body,text,lat,long)
 
 	
