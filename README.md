@@ -25,11 +25,12 @@ An EDMC Plugin that logs USS and Hyperdiction details through a google form to a
 
 
 # Installation
-Download the [latest release](https://github.com/NoFoolLikeOne/EDMC-USS-Survey/releases/download/3_0b/EDMC-USS-Survey-3.0b.zip), open the archive (zip) and extract the folder  to your EDMC plugin folder.
+Download the [latest release](https://github.com/NoFoolLikeOne/EDMC-USS-Survey/releases/download/3.0b/EDMC-USS-Survey-3.0b.zip), open the archive (zip) and extract the folder  to your EDMC plugin folder.
 
-* Windows: `%LOCALAPPDATA%\EDMarketConnector\plugins` (usually `C:\Users\you\AppData\Local\EDMarketConnector\plugins`).
-* Mac: `~/Library/Application Support/EDMarketConnector/plugins` (in Finder hold ⌥ and choose Go &rarr; Library to open your `~/Library` folder).
-* Linux: `$XDG_DATA_HOME/EDMarketConnector/plugins`, or `~/.local/share/EDMarketConnector/plugins` if `$XDG_DATA_HOME` is unset.
+To install a downloaded plugin:
+
+* On the Plugins settings tab press the “Open” button. This reveals the plugins folder where this app looks for plugins.
+* Open the .zip archive that you downloaded and move the folder contained inside into the plugins folder.
 
 You will need to re-start EDMC for it to notice the plugin.
 
