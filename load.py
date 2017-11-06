@@ -23,6 +23,9 @@ this.s = None
 this.prep = {}
 this.debuglevel=1
 
+window=tk.Tk()
+window.withdraw()
+
 # Lets capture the plugin name we want the name - "EDMC -"
 myPlugin = "USS Survey"
 
@@ -137,7 +140,7 @@ class news:
 		lines = feed.content.split("\r\n")
 		line = []
 		try:
-			line = lines[1].split("\t")
+			line = lines[2].split("\t")
 			this.newsitem.grid()	
 			this.news_label.grid()	
 			
@@ -195,6 +198,9 @@ class Patrol:
 		nearest,distance,instructions,visits,x,y,z = findNearest(self.system,this.patrol)
 		setPatrol(nearest,distance,instructions)
 		self.nearest=nearest
+		this.clip=nearest
+		debug("setting clip",2)
+		debug(this.clip,2)
 		if distance == 0:
 			setPatrolReport(cmdr,self.system["name"])
 			
@@ -214,8 +220,20 @@ class Patrol:
 		self.showPatrol(cmdr)		
 			
 		
+class meropeLog:
+	def __init__(self,frame):
+		debug("Initiating Merope Log")
+		
+	def FSDJump(self,cmdr, system, station, entry):
+		x = entry["StarPos"][0]
+		y = entry["StarPos"][1]
+		z = entry["StarPos"][2]
+		 
+		if getDistanceMerope(x,y,z) <= 200:
+			url="https://docs.google.com/forms/d/e/1FAIpQLSeqLdzXzubMFicyDzDvSN6YIwFW9Txx71d1asGiAIt23j6vKQ/formResponse?usp=pp_url&entry.1604333823="+quote_plus(system)+"&entry.939851024="+str(x)+"&entry.1593775066="+str(y)+"+&entry.1149646403="+str(z)
+			r = requests.get(url)
+
 			
-	
 def dateDiffMinutes(s1,s2):
 	format="%Y/%m/%d %H:%M:%S"
 	d1=datetime.datetime.strptime(s1,format) 
@@ -223,8 +241,10 @@ def dateDiffMinutes(s1,s2):
 	
 	return (d2-d1).days	*24 *60
 		
-def debug(value,level=1):
-	if this.debuglevel <= level:
+def debug(value,level=None):
+	if level is None:
+		level = 1
+	if this.debuglevel >= level:
 		print "["+myPlugin+"] "+str(value)
 
 
@@ -259,7 +279,7 @@ def get_patrol():
 
 def merge_visited():
 	url="https://docs.google.com/spreadsheets/d/e/2PACX-1vQS_KlvwvoGlEEUOvGpc8dwVo4ViOs1x8NJsVeMOvjfAe-xsJyT0ErBFLipMYPWIaTk8By2Zy26T8_l/pub?gid=159395757&single=true&output=tsv"
-	r = requests.get(url, verify=False)
+	r = requests.get(url)
 	#print r.content
 	failed=0
 	
@@ -335,6 +355,7 @@ def plugin_app(parent):
 	this.hyperdictionInator = HyperdictionDetector(frame)
 	this.patrolZone = Patrol(frame)
 	this.newsFeed = news(frame)
+	this.meropeLog = meropeLog(frame)
 	
 	# maybe we want to be able to change the labels?
 	this.label = tk.Label(this.frame, text=  "Patrol:")
@@ -418,28 +439,7 @@ def getDistanceMerope(x1,y1,z1):
 def getDistanceSol(x1,y1,z1):
 	return round(sqrt(pow(float(0)-float(x1),2)+pow(float(0)-float(y1),2)+pow(float(0)-float(z1),2)),2)			
 		
-# def patrol_start_jump(cmdr,arrival,departure,jstart,jend):
 
-	# debug("patrol_start_jump("+cmdr+","+arrival+","+departure+","+jstart+","+jend+")")
-	
-	# try:
-		# this.targetsystem
-	# except:
-		# x,y,z = edsmGetSystem(jstart)
-		# oldsystem = { "x": x, "y": y, "z": z, "name": jstart }			
-		# this.targetsystem,distance,instructions,visits,x,y,z = findNearest(oldsystem,this.patrol)	
-
-	# debug("Target System "+this.targetsystem)
-	
-	# if this.targetsystem == jstart:
-		# debug("leaving patrol system now")
-		# try:
-			# url = "https://docs.google.com/forms/d/e/1FAIpQLScmM7IuJAla_9LflBf-Bi7aNsIhbNkuh_3g6_Z2PL87zMzXGg/formResponse?usp=pp_url&entry.1836345870="+arrival+"&entry.25192571="+departure+"&entry.424221764="+cmdr+"&entry.799655481="+jstart			
-			# r = requests.get(url)	
-			# debug(r)
-			# debug("Jump started: " +cmdr+"  "+jstart)
-		# except:
-			# debug("error sending "+url)
 		
 	
 # Detect journal events
@@ -460,7 +460,7 @@ def journal_entry(cmdr, system, station, entry):
 	if entry['event'] == 'StartJump' and entry['JumpType'] == 'Hyperspace':
 			
 		debug("StartJump Hyperspace")
-		debug(entry)
+		debug(entry,2)
 		
 		this.hyperdictionInator.StartJump(cmdr, system, station, entry)
 						
@@ -470,11 +470,12 @@ def journal_entry(cmdr, system, station, entry):
 	if entry['event'] == 'FSDJump':
 			
 		debug("FSDJump")
-		debug(entry)
+		debug(entry,2)
 			
 		this.ussInator.FSDJump(cmdr, system, station, entry)
 		this.hyperdictionInator.FSDJump(cmdr, system, station, entry)	
 		this.patrolZone.FSDJump(cmdr, system, station, entry)
+		this.meropeLog.FSDJump(cmdr, system, station, entry)
 	
 	if entry['event'] == 'Location':
 		this.patrolZone.Location(cmdr, system, station, entry)
@@ -535,5 +536,7 @@ def setPatrol(nearest,distance,instructions):
 def cmdr_data(data):
 	this.patrolZone.cmdrData(data)
 	
-
+def plugin_stop():
+	debug("Destroying Clipboard",3)
+	window.destroy()
 	
