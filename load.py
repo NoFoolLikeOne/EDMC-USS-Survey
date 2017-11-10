@@ -29,7 +29,26 @@ window.withdraw()
 # Lets capture the plugin name we want the name - "EDMC -"
 myPlugin = "USS Survey"
 
-
+class PlanetaryScan:
+	
+	# we want to split the planet surface into searchable sections
+	# flight time should be around 10 minutes to cover a section. 
+	# Assume 300m/s speed
+	# 200km will take around 8-12 minutes to survey depending on speed. A nice round number
+	# Merope 5C Radius = 1,478 km 
+	# Merope 5C Circumference = 9,286.54 km 
+	# sections around circumference  = 46
+	# Total sections.. 46x23?
+	# pole = 1 section
+	# 
+	
+	def __init__(self,frame):
+		debug("Initiating USS Detector")
+		
+	def SupercruiseExit(self,cmdr, system, station, entry):
+		debug("We have exit near a body")
+		#{ "timestamp":"2016-06-10T14:32:03Z", "event":"SupercruiseExit", "StarSystem":"Yuetu", "Body":"Yuetu B", "BodyType: "Planet"}
+		#if we are at a planet let us find out if it is landable
 
 class USSDetector:
 	'Class for Detecting USS Drops'
