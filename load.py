@@ -159,7 +159,7 @@ class news:
 		lines = feed.content.split("\r\n")
 		line = []
 		try:
-			line = lines[2].split("\t")
+			line = lines[3].split("\t")
 			this.newsitem.grid()	
 			this.news_label.grid()	
 			
