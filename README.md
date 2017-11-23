@@ -34,3 +34,12 @@ To install a downloaded plugin:
 
 You will need to re-start EDMC for it to notice the plugin.
 
+# Troubleshooting
+
+If you are using Kapersky Anti-Virus then it will probably be preventing the application from accessing the google spreadheets. Kaspersky Anti-Virus scans encrypted connections by substituting a requested security certificate with the self-signed one. Some applications like this plugin that initiate a connection reject the certificate, therefore failing to establish the connection. 
+
+You will need to turn of  the encrypted connection scan
+
+[Kapersy Support Issue](https://support.kaspersky.com/6851)
+
+
