@@ -142,8 +142,8 @@ class news:
 		this.description = tk.Message(frame,width=200)
 		this.news_label = tk.Label(frame, text=  "Report:")
 		this.newsitem= HyperlinkLabel(frame, compound=tk.RIGHT, popup_copy = True)
-		this.news_label.grid(row = 2, column = 0, sticky=tk.W)
-		this.newsitem.grid(row = 2, column = 1, columnspan=3, sticky=tk.W)	
+		this.news_label.grid(row = 3, column = 0, sticky=tk.W)
+		this.newsitem.grid(row = 3, column = 1, columnspan=3, sticky=tk.W)	
 		this.newsitem["text"]= None
 		this.newsitem.grid_remove()
 		this.news_label.grid_remove()
@@ -163,7 +163,7 @@ class news:
 			this.newsitem.grid()	
 			this.news_label.grid()	
 			
-			this.news_label["text"] = "news"
+			this.news_label["text"] = "News"
 			this.newsitem["text"] = line[0]
 			this.newsitem["url"] = line[1]
 
@@ -268,6 +268,12 @@ def debug(value,level=None):
 
 
 def getDistance(x1,y1,z1,x2,y2,z2):
+	debug(x1,2)
+	debug(y1,2)
+	debug(z1,2)
+	debug(x2,2)
+	debug(y2,2)
+	debug(z2,2)
 	return round(sqrt(pow(float(x2)-float(x1),2)+pow(float(y2)-float(y1),2)+pow(float(z2)-float(z1),2)),2)
 	
 def get_patrol():
