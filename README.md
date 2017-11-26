@@ -9,9 +9,8 @@ An EDMC Plugin that logs USS and Hyperdiction details through a google form to a
 * When a user is Hyperdicted the details are [logged](https://docs.google.com/spreadsheets/d/1grRDdXb6-6W1oxAVzPvvqTQDiVuExqAnvR97Q7cvrMA/edit?usp=sharing)
 * The user can manually [log additional information](https://docs.google.com/spreadsheets/d/1IA3HxotFUXh9qJi3v-wtcenvMF-znamfQ8JtNJbiZdo/edit#gid=1466834969) about the Hyperdiction
 * When a user arrives at a patrol destination their details are [logged.](https://docs.google.com/spreadsheets/d/1zlSh5fHg2ZM9fdLE4xl_GlPX0b0BFpbxarvKhRMUMi0/edit?usp=sharing)
-* The patrol list is prioritissed to the the nearest least visitied system is offered to the user.
-* Users arriving at a patrol system can log any unknown incidents on the Canonn incident form. 
-
+* The patrol list is prioritised to the the nearest least visitied system is offered to the user.
+* Users are notified of breaking news or upgrade availability
 
 ![Screenshot](screenshot.png)
 
@@ -25,7 +24,7 @@ An EDMC Plugin that logs USS and Hyperdiction details through a google form to a
 
 
 # Installation
-Download the [latest release](https://github.com/NoFoolLikeOne/EDMC-USS-Survey/releases/download/3.1/EDMC-USS-Survey-3.1.zip), open the archive (zip) and extract the folder  to your EDMC plugin folder.
+Download the [latest release](https://github.com/NoFoolLikeOne/EDMC-USS-Survey/releases), open the archive (zip) and extract the folder  to your EDMC plugin folder.
 
 To install a downloaded plugin:
 

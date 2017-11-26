@@ -209,6 +209,7 @@ class Patrol:
 		debug(data,2)
 		x,y,z = edsmGetSystem(data["lastSystem"]["name"])
 		self.system = { "x": x, "y": y, "z": z, "name": data["lastSystem"]["name"] }	
+		debug(self.system,2)
 		self.showPatrol(data["commander"]["name"])
 		
 	def showPatrol(self,cmdr):
