@@ -62,6 +62,14 @@ class USSDetector:
 		## we might start in system and so never have jumped
 		self.jumped=False
 
+	def Location(self,cmdr, system, station, entry):		
+		self.arrival=entry["timestamp"].replace("T"," ").replace("-","/").replace("Z","")
+		self.sysx=entry["StarPos"][0]
+		self.sysy=entry["StarPos"][1]
+		self.sysz=entry["StarPos"][2]
+		# need to set this so we know we have coordinates available
+		self.jumped=True
+		
 	def FSDJump(self,cmdr, system, station, entry):
 		self.arrival=entry["timestamp"].replace("T"," ").replace("-","/").replace("Z","")
 		self.sysx=entry["StarPos"][0]
@@ -121,7 +129,7 @@ class HyperdictionDetector:
 		
 
 	def FSDJump(self,cmdr, system, station, entry):
-		self.end_jump = system
+		self.end_jump = entry["StarSystem"]
 		self.cmdr=cmdr
 		if self.target_jump != self.end_jump:
 			debug("Hyperdiction Detected",2)	
