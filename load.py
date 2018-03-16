@@ -362,8 +362,13 @@ def plugin_start():
 	this._IMG_VISITED = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'/tick3.gif')
 	this._IMG_IGNORE = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'/cross.gif')
 	this._IMG_CLIPBOARD = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'/clipboard.gif')
-	
-
+	this._IMG_BASILISK = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'\Icons\LCU_Basilisk_25px.gif')
+	this._IMG_CYCLOPS = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'\Icons\LCU_Cyclops_25px.gif')
+	this._IMG_MEDUSA = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'\Icons\LCU_Medusa_25px.gif')
+	this._IMG_PROBE = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'\Icons\LCU_Probe_25px.gif')
+	this._IMG_SCOUT = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'\Icons\LCU_Scout_25px_1.gif')
+	this._IMG_SENSOR = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'\Icons\LCU_Sensor_25px.gif')
+	this._IMG_SPACE = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'\Icons\LCU_Space_25px.gif')
 	
 	this.patrol=get_patrol()
 	merge_visited()
@@ -375,6 +380,7 @@ def copy_patrol_to_clipboard(event):
 	window.clipboard_clear()  # clear clipboard contents
 	window.clipboard_append(this.clip)  	
 	
+
 	
 def plugin_app(parent):
 
@@ -382,8 +388,11 @@ def plugin_app(parent):
 	#create a new frame as a containier for the status
 	
 	this.frame = tk.Frame(parent)
+	this.buttonbar = tk.Frame(this.frame)
 	#We want three columns, label, text, button
 	this.frame.columnconfigure(5, weight=1)
+	this.buttonbar.columnconfigure(7, weight=1)
+	this.buttonbar.grid(row = 4, column = 0, columnspan=5, sticky=tk.W)
 	
 	this.ussInator = USSDetector(frame)
 	this.hyperdictionInator = HyperdictionDetector(frame)
@@ -402,6 +411,25 @@ def plugin_app(parent):
 	this.cross = tk.Label(this.frame, anchor=tk.W, image=this._IMG_IGNORE)
 	
 	#tk.text_widget.window_create("insert", window=image_link)
+	
+	
+	this.BASILISK = tk.Label(this.buttonbar, anchor=tk.W, image=this._IMG_BASILISK)
+	this.CYCLOPS = tk.Label(this.buttonbar, anchor=tk.W, image=this._IMG_CYCLOPS)
+	this.MEDUSA = tk.Label(this.buttonbar, anchor=tk.W, image=this._IMG_MEDUSA)
+	this.PROBE = tk.Label(this.buttonbar, anchor=tk.W, image=this._IMG_PROBE)
+	this.SCOUT = tk.Label(this.buttonbar, anchor=tk.W, image=this._IMG_SCOUT)
+	this.SENSOR = tk.Label(this.buttonbar, anchor=tk.W, image=this._IMG_SENSOR)
+	this.SPACE = tk.Label(this.buttonbar, anchor=tk.W, image=this._IMG_SPACE)
+	
+	this.SPACE.grid(row = 0, column = 0, sticky=tk.W)
+	this.PROBE.grid(row = 0, column = 1, sticky=tk.W)
+	this.SENSOR.grid(row = 0, column = 2, sticky=tk.W)	
+	this.SCOUT.grid(row = 0, column = 3, sticky=tk.W)
+	this.CYCLOPS.grid(row = 0, column = 4, sticky=tk.W)
+	this.BASILISK.grid(row = 0, column = 5, sticky=tk.W)
+	this.MEDUSA.grid(row = 0, column = 6, sticky=tk.W)
+	
+
 	
 	this.clipboard.bind("<Button-1>", copy_patrol_to_clipboard)  
 	
