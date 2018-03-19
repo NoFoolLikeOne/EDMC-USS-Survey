@@ -29,6 +29,79 @@ window.withdraw()
 # Lets capture the plugin name we want the name - "EDMC -"
 myPlugin = "USS Survey"
 
+class CanonnReport:
+
+	def __init__(self,label):
+		debug("Initiating Cannon Report")
+		
+		self.label=label
+		self.threat=0
+		self.probe=0
+		self.sensor=0
+		self.scout=0
+		self.cyclops=0
+		self.basilisk=0
+		self.medusa=0
+		
+	def setThreat(self,threat):
+		self.threat=threat
+		self.setReport()
+				
+	def incProbe(self):
+		self.probe+=1
+		self.setReport()
+				
+	def incSensor(self):
+		self.sensor+=1
+		self.setReport()
+		
+	def incScout(self):
+		self.scout+=1		
+		self.setReport()
+		
+	def incCyclops(self):
+		self.cyclops+=1		
+		self.setReport()
+		
+	def incBasilisk(self):
+		self.basilisk+=1		
+		self.setReport()
+		
+	def incMedusa(self):
+		self.medusa+=1	
+		self.setReport()
+		
+	def setSpace(self):
+		self.probe=0
+		self.sensor=0
+		self.scout=0
+		self.cyclops=0
+		self.basilisk=0
+		self.medusa=0
+		self.setReport()
+		
+	def getThings(self,report,thing,quantity):
+		if quantity==1:
+			return report+" 1 "+thing
+		if quantity > 1:
+			return report+" "+str(quantity)+" "+thing+"s"
+		return report
+		
+	
+	def setReport(self):
+		self.report="Threat "+str(self.threat)+":"
+		self.report=self.getThings(self.report,"probe",self.probe)
+		self.report=self.getThings(self.report,"sensor",self.sensor)
+		self.report=self.getThings(self.report,"scout",self.scout)
+		self.report=self.getThings(self.report,"cyclops",self.cyclops)
+		self.report=self.getThings(self.report,"basilisk",self.basilisk)
+		self.report=self.getThings(self.report,"medusa",self.medusa)
+		if self.probe+self.sensor+self.scout+self.cyclops+self.basilisk+self.medusa == 0:
+			self.report=self.report+" click icons to report thargoids"
+		self.label["text"]=self.report
+		
+		
+		
 class PlanetaryScan:
 	
 	# we want to split the planet surface into searchable sections
@@ -379,7 +452,7 @@ def plugin_start():
 def copy_patrol_to_clipboard(event):
 	window.clipboard_clear()  # clear clipboard contents
 	window.clipboard_append(this.clip)  	
-	
+		
 
 	
 def plugin_app(parent):
@@ -393,6 +466,10 @@ def plugin_app(parent):
 	this.frame.columnconfigure(5, weight=1)
 	this.buttonbar.columnconfigure(7, weight=1)
 	this.buttonbar.grid(row = 4, column = 0, columnspan=5, sticky=tk.W)
+
+	this.canonnReportDesc = tk.Message(this.frame,width=200)
+	this.canonnReportDesc.grid(row = 5, column = 0, columnspan=4, sticky=tk.W)
+	this.canonnReport=CanonnReport(canonnReportDesc);	
 	
 	this.ussInator = USSDetector(frame)
 	this.hyperdictionInator = HyperdictionDetector(frame)
@@ -413,13 +490,13 @@ def plugin_app(parent):
 	#tk.text_widget.window_create("insert", window=image_link)
 	
 	
-	this.BASILISK = tk.Label(this.buttonbar, anchor=tk.W, image=this._IMG_BASILISK)
-	this.CYCLOPS = tk.Label(this.buttonbar, anchor=tk.W, image=this._IMG_CYCLOPS)
-	this.MEDUSA = tk.Label(this.buttonbar, anchor=tk.W, image=this._IMG_MEDUSA)
-	this.PROBE = tk.Label(this.buttonbar, anchor=tk.W, image=this._IMG_PROBE)
-	this.SCOUT = tk.Label(this.buttonbar, anchor=tk.W, image=this._IMG_SCOUT)
-	this.SENSOR = tk.Label(this.buttonbar, anchor=tk.W, image=this._IMG_SENSOR)
-	this.SPACE = tk.Label(this.buttonbar, anchor=tk.W, image=this._IMG_SPACE)
+	this.BASILISK = tk.Button(this.buttonbar, anchor=tk.W, image=this._IMG_BASILISK, command=canonnReport.incBasilisk)
+	this.CYCLOPS = tk.Button(this.buttonbar, anchor=tk.W, image=this._IMG_CYCLOPS, command=canonnReport.incCyclops)
+	this.MEDUSA = tk.Button(this.buttonbar, anchor=tk.W, image=this._IMG_MEDUSA, command=canonnReport.incMedusa)
+	this.PROBE = tk.Button(this.buttonbar, anchor=tk.W, image=this._IMG_PROBE, command=canonnReport.incProbe)
+	this.SCOUT = tk.Button(this.buttonbar, anchor=tk.W, image=this._IMG_SCOUT, command=canonnReport.incScout)
+	this.SENSOR = tk.Button(this.buttonbar, anchor=tk.W, image=this._IMG_SENSOR, command=canonnReport.incSensor)
+	this.SPACE = tk.Button(this.buttonbar, anchor=tk.W, image=this._IMG_SPACE, command=canonnReport.setSpace)
 	
 	this.SPACE.grid(row = 0, column = 0, sticky=tk.W)
 	this.PROBE.grid(row = 0, column = 1, sticky=tk.W)
