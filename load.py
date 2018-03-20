@@ -87,6 +87,8 @@ class CanonnReport:
 			return report+" "+str(quantity)+" "+thing+"s"
 		return report
 		
+	def transmit(self):
+		debug("Transmitting")
 	
 	def setReport(self):
 		self.report="Threat "+str(self.threat)+":"
@@ -442,6 +444,7 @@ def plugin_start():
 	this._IMG_SCOUT = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'\Icons\LCU_Scout_25px_1.gif')
 	this._IMG_SENSOR = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'\Icons\LCU_Sensor_25px.gif')
 	this._IMG_SPACE = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'\Icons\LCU_Space_25px.gif')
+	this._IMG_TRANSMIT = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'\Icons\\transmit.gif')
 	
 	this.patrol=get_patrol()
 	merge_visited()
@@ -497,6 +500,7 @@ def plugin_app(parent):
 	this.SCOUT = tk.Button(this.buttonbar, anchor=tk.W, image=this._IMG_SCOUT, command=canonnReport.incScout)
 	this.SENSOR = tk.Button(this.buttonbar, anchor=tk.W, image=this._IMG_SENSOR, command=canonnReport.incSensor)
 	this.SPACE = tk.Button(this.buttonbar, anchor=tk.W, image=this._IMG_SPACE, command=canonnReport.setSpace)
+	this.TRANSMIT = tk.Button(this.buttonbar, anchor=tk.W, image=this._IMG_TRANSMIT, command=canonnReport.transmit)
 	
 	this.SPACE.grid(row = 0, column = 0, sticky=tk.W)
 	this.PROBE.grid(row = 0, column = 1, sticky=tk.W)
@@ -505,6 +509,7 @@ def plugin_app(parent):
 	this.CYCLOPS.grid(row = 0, column = 4, sticky=tk.W)
 	this.BASILISK.grid(row = 0, column = 5, sticky=tk.W)
 	this.MEDUSA.grid(row = 0, column = 6, sticky=tk.W)
+	this.TRANSMIT.grid(row = 0, column = 7, sticky=tk.W)
 	
 
 	
