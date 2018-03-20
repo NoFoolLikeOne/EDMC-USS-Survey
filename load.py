@@ -470,7 +470,8 @@ def plugin_app(parent):
 	this.buttonbar.columnconfigure(7, weight=1)
 	this.buttonbar.grid(row = 4, column = 0, columnspan=5, sticky=tk.W)
 
-	this.canonnReportDesc = tk.Message(this.frame,width=200)
+	#this.canonnReportDesc = tk.Message(this.frame,width=200)
+	this.canonnReportDesc = HyperlinkLabel(this.frame,wraplength=200,popup_copy = False)
 	this.canonnReportDesc.grid(row = 5, column = 0, columnspan=4, sticky=tk.W)
 	this.canonnReport=CanonnReport(canonnReportDesc);	
 	
@@ -500,7 +501,7 @@ def plugin_app(parent):
 	this.SCOUT = tk.Button(this.buttonbar, anchor=tk.W, image=this._IMG_SCOUT, command=canonnReport.incScout)
 	this.SENSOR = tk.Button(this.buttonbar, anchor=tk.W, image=this._IMG_SENSOR, command=canonnReport.incSensor)
 	this.SPACE = tk.Button(this.buttonbar, anchor=tk.W, image=this._IMG_SPACE, command=canonnReport.setSpace)
-	this.TRANSMIT = tk.Button(this.buttonbar, anchor=tk.W, image=this._IMG_TRANSMIT, command=canonnReport.transmit)
+	this.TRANSMIT = tk.Button(this.buttonbar, anchor=tk.W, image=this._IMG_VISITED, command=canonnReport.transmit)
 	
 	this.SPACE.grid(row = 0, column = 0, sticky=tk.W)
 	this.PROBE.grid(row = 0, column = 1, sticky=tk.W)
