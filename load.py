@@ -80,6 +80,11 @@ class CanonnReport:
 		self.medusa=0
 		self.setReport()
 		
+	def hyperLink(self,event):
+		url=self.getUrl("viewform")
+		webbrowser.open(url)
+		self.hide()
+		
 	def getThings(self,report,thing,quantity):
 		if quantity==1:
 			return report+" 1 "+thing
@@ -87,8 +92,63 @@ class CanonnReport:
 			return report+" "+str(quantity)+" "+thing+"s"
 		return report
 		
+	def hide(self):
+		this.BASILISK.grid_remove()
+		this.CYCLOPS.grid_remove()
+		this.MEDUSA.grid_remove()
+		this.PROBE.grid_remove()
+		this.SCOUT.grid_remove()
+		this.SENSOR.grid_remove()
+		this.SPACE.grid_remove()
+		this.TRANSMIT.grid_remove()
+		this.canonnReportDesc.grid_remove()
+		
 	def transmit(self):
 		debug("Transmitting")
+		url=self.getUrl("formResponse")
+		r = requests.get(url)
+		self.hide()
+		
+	def ussDrop(self,cmdr, system, station, entry):
+		if entry['USSType'] == "$USS_Type_NonHuman;":
+			self.uss_type=entry['USSType']
+			self.threat=str(entry['USSThreat'])		
+			self.system=system
+			self.commander=cmdr
+			self.setSpace()
+			this.BASILISK.grid()
+			this.CYCLOPS.grid()
+			this.MEDUSA.grid()
+			this.PROBE.grid()
+			this.SCOUT.grid()
+			this.SENSOR.grid()
+			this.SPACE.grid()
+			this.TRANSMIT.grid()
+			this.canonnReportDesc.grid()			
+	
+	
+	def getUrl(self,action):
+		url="https://docs.google.com/forms/d/e/1FAIpQLSdspuO9LP1byQFx4oeMNq9FT4eo34mgqpQTo-6oYZOXoX0PtA/"+action+"?usp=pp_url"
+		url+="&entry.1699877803="+quote_plus(self.commander)
+		url+="&entry.758432443="+quote_plus(self.system)
+		url+="&entry.740257661="+str(self.threat)
+		url+="&entry.1192850048="+str(self.probe)
+		url+="&entry.500127414="+str(self.sensor)
+		url+="&entry.639490147="+str(self.scout)
+		url+="&entry.265020225="+str(self.cyclops)
+		url+="&entry.598670618="+str(self.basilisk)
+		url+="&entry.950835942="+str(self.medusa)	
+		url+="&entry.1201289190=No"
+		url+="&entry.1758654357="+str(this.guid)+"&submit=Submit"
+		return url
+		#&entry.671628463=self.hostile
+		#&entry.1276226296=self.description
+		#&entry.1201289190=self.scanned
+		#&entry.2069330363=self.core
+		#&entry.2082917464=self.inner
+		#&entry.1904732354=self.outer
+		#&entry.1121979243=self.image
+		
 	
 	def setReport(self):
 		self.report="Threat "+str(self.threat)+":"
@@ -101,6 +161,7 @@ class CanonnReport:
 		if self.probe+self.sensor+self.scout+self.cyclops+self.basilisk+self.medusa == 0:
 			self.report=self.report+" click icons to report thargoids"
 		self.label["text"]=self.report
+		self.label["url"]=self.getUrl("viewform")
 		
 		
 		
@@ -182,8 +243,7 @@ class USSDetector:
 			#print url
 			r = requests.get(url)	
 			debug(r,2)
-			if self.usstype == "$USS_Type_NonHuman;":
-				setUssReport(system,self.threat,entry["timestamp"])
+			
 				
 class HyperdictionDetector:		
 	'Class for Detecting Hyperdictions'
@@ -294,6 +354,8 @@ class Patrol:
 		self.system = { "x": x, "y": y, "z": z, "name": data["lastSystem"]["name"] }	
 		debug(self.system,2)
 		self.showPatrol(data["commander"]["name"])
+		
+	
 		
 	def showPatrol(self,cmdr):
 		merge_visited()
@@ -471,9 +533,11 @@ def plugin_app(parent):
 	this.buttonbar.grid(row = 4, column = 0, columnspan=5, sticky=tk.W)
 
 	#this.canonnReportDesc = tk.Message(this.frame,width=200)
+	#this.canonnReportDesc = tk.Label(this.frame,wraplength=200)
 	this.canonnReportDesc = HyperlinkLabel(this.frame,wraplength=200,popup_copy = False)
 	this.canonnReportDesc.grid(row = 5, column = 0, columnspan=4, sticky=tk.W)
 	this.canonnReport=CanonnReport(canonnReportDesc);	
+	this.canonnReportDesc.bind("<Button-1>", this.canonnReport.hyperLink)  
 	
 	this.ussInator = USSDetector(frame)
 	this.hyperdictionInator = HyperdictionDetector(frame)
@@ -503,6 +567,9 @@ def plugin_app(parent):
 	this.SPACE = tk.Button(this.buttonbar, anchor=tk.W, image=this._IMG_SPACE, command=canonnReport.setSpace)
 	this.TRANSMIT = tk.Button(this.buttonbar, anchor=tk.W, image=this._IMG_VISITED, command=canonnReport.transmit)
 	
+	
+
+	
 	this.SPACE.grid(row = 0, column = 0, sticky=tk.W)
 	this.PROBE.grid(row = 0, column = 1, sticky=tk.W)
 	this.SENSOR.grid(row = 0, column = 2, sticky=tk.W)	
@@ -512,7 +579,15 @@ def plugin_app(parent):
 	this.MEDUSA.grid(row = 0, column = 6, sticky=tk.W)
 	this.TRANSMIT.grid(row = 0, column = 7, sticky=tk.W)
 	
-
+	this.BASILISK.grid_remove()
+	this.CYCLOPS.grid_remove()
+	this.MEDUSA.grid_remove()
+	this.PROBE.grid_remove()
+	this.SCOUT.grid_remove()
+	this.SENSOR.grid_remove()
+	this.SPACE.grid_remove()
+	this.TRANSMIT.grid_remove()
+	this.canonnReportDesc.grid_remove()
 	
 	this.clipboard.bind("<Button-1>", copy_patrol_to_clipboard)  
 	
@@ -597,6 +672,7 @@ def journal_entry(cmdr, system, station, entry):
 	  
 	if entry['event'] == 'USSDrop':
 		this.ussInator.ussDrop(cmdr, system, station, entry)
+		this.canonnReport.ussDrop(cmdr, system, station, entry)
 		
 	if entry['event'] == 'SupercruiseExit':
 		# we need to check if we dropped from a uss
@@ -644,18 +720,7 @@ def setHyperReport(sysfrom,systo):
 	this.report_label.grid()
 	this.report.grid()			
 	
-def setUssReport(system,threat,timestamp):
-	this.report_label["text"] = "NHSS USS"
-	this.report["text"] = "Report Thargoid activity to Canonn"
-	
-	# Timesytamp 2017-10-14T15:08:24Z
-	date,part=timestamp.split("T")
-	time=part[:5]
-	
-	this.report["url"] = "https://docs.google.com/forms/d/e/1FAIpQLScsU0RZLWl2JPEW-Oy3D1FBGi2G7wGZTrFHe9mOIdLfX0wTEQ/viewform?usp=pp_url&entry.745898940="+quote_plus(system)+"&entry.1910321643="+str(threat)+"&entry.829248547="+date+"&entry.1395484353="+time+"&entry.689381068="+str(this.guid)
-	#this.report["url"] = "https://docs.google.com/forms/d/e/1FAIpQLScsU0RZLWl2JPEW-Oy3D1FBGi2G7wGZTrFHe9mOIdLfX0wTEQ/viewform?entry.745898940="+quote_plus(system)+"&entry.829248547&entry.1395484353&entry.191907177"
-	this.report_label.grid()
-	this.report.grid()				
+		
 			
 def setPatrol(nearest,distance,instructions):
 
