@@ -42,6 +42,7 @@ class CanonnReport:
 		self.cyclops=0
 		self.basilisk=0
 		self.medusa=0
+		self.cobra=0
 		
 	def setThreat(self,threat):
 		self.threat=threat
@@ -50,6 +51,10 @@ class CanonnReport:
 	def incProbe(self):
 		self.probe+=1
 		self.setReport()
+		
+	def incCobra(self):
+		self.cobra+=1
+		self.setReport()		
 				
 	def incSensor(self):
 		self.sensor+=1
@@ -78,6 +83,7 @@ class CanonnReport:
 		self.cyclops=0
 		self.basilisk=0
 		self.medusa=0
+		self.cobra=0
 		self.setReport()
 		
 	def hyperLink(self,event):
@@ -101,10 +107,11 @@ class CanonnReport:
 		this.SENSOR.grid_remove()
 		this.SPACE.grid_remove()
 		this.TRANSMIT.grid_remove()
+		this.COBRA.grid_remove()
 		this.canonnReportDesc.grid_remove()
 		
 	def transmit(self):
-		debug("Transmitting")
+		debug("Transmitting",2)
 		url=self.getUrl("formResponse")
 		r = requests.get(url)
 		self.hide()
@@ -124,6 +131,7 @@ class CanonnReport:
 			this.SENSOR.grid()
 			this.SPACE.grid()
 			this.TRANSMIT.grid()
+			this.COBRA.grid()
 			this.canonnReportDesc.grid()			
 	
 	
@@ -138,6 +146,7 @@ class CanonnReport:
 		url+="&entry.265020225="+str(self.cyclops)
 		url+="&entry.598670618="+str(self.basilisk)
 		url+="&entry.950835942="+str(self.medusa)	
+		url+="&entry.1268549011="+str(self.cobra)
 		url+="&entry.1201289190=No"
 		url+="&entry.1758654357="+str(this.guid)+"&submit=Submit"
 		return url
@@ -158,7 +167,8 @@ class CanonnReport:
 		self.report=self.getThings(self.report,"cyclops",self.cyclops)
 		self.report=self.getThings(self.report,"basilisk",self.basilisk)
 		self.report=self.getThings(self.report,"medusa",self.medusa)
-		if self.probe+self.sensor+self.scout+self.cyclops+self.basilisk+self.medusa == 0:
+		self.report=self.getThings(self.report,"humman ship",self.cobra)
+		if self.probe+self.sensor+self.scout+self.cyclops+self.basilisk+self.medusa+self.cobra == 0:
 			self.report=self.report+" click icons to report thargoids"
 		self.label["text"]=self.report
 		self.label["url"]=self.getUrl("viewform")
@@ -507,6 +517,7 @@ def plugin_start():
 	this._IMG_SENSOR = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'\Icons\LCU_Sensor_25px.gif')
 	this._IMG_SPACE = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'\Icons\LCU_Space_25px.gif')
 	this._IMG_TRANSMIT = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'\Icons\\transmit.gif')
+	this._IMG_COBRA = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'\Icons\\cobra.gif')	
 	
 	this.patrol=get_patrol()
 	merge_visited()
@@ -565,6 +576,7 @@ def plugin_app(parent):
 	this.SCOUT = tk.Button(this.buttonbar, anchor=tk.W, image=this._IMG_SCOUT, command=canonnReport.incScout)
 	this.SENSOR = tk.Button(this.buttonbar, anchor=tk.W, image=this._IMG_SENSOR, command=canonnReport.incSensor)
 	this.SPACE = tk.Button(this.buttonbar, anchor=tk.W, image=this._IMG_SPACE, command=canonnReport.setSpace)
+	this.COBRA = tk.Button(this.buttonbar, anchor=tk.W, image=this._IMG_COBRA, command=canonnReport.incCobra)
 	this.TRANSMIT = tk.Button(this.buttonbar, anchor=tk.W, image=this._IMG_VISITED, command=canonnReport.transmit)
 	
 	
@@ -577,7 +589,8 @@ def plugin_app(parent):
 	this.CYCLOPS.grid(row = 0, column = 4, sticky=tk.W)
 	this.BASILISK.grid(row = 0, column = 5, sticky=tk.W)
 	this.MEDUSA.grid(row = 0, column = 6, sticky=tk.W)
-	this.TRANSMIT.grid(row = 0, column = 7, sticky=tk.W)
+	this.COBRA.grid(row = 0, column = 7, sticky=tk.W)
+	this.TRANSMIT.grid(row = 0, column = 8, sticky=tk.W)
 	
 	this.BASILISK.grid_remove()
 	this.CYCLOPS.grid_remove()
@@ -587,6 +600,7 @@ def plugin_app(parent):
 	this.SENSOR.grid_remove()
 	this.SPACE.grid_remove()
 	this.TRANSMIT.grid_remove()
+	this.COBRA.grid_remove()
 	this.canonnReportDesc.grid_remove()
 	
 	this.clipboard.bind("<Button-1>", copy_patrol_to_clipboard)  
