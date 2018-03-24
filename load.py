@@ -5,6 +5,7 @@ import ttk
 import Tkinter as tk
 import requests
 import os
+import csv
 import uuid
 from urllib import quote_plus
 from  math import sqrt,pow,trunc
@@ -22,6 +23,7 @@ this = sys.modules[__name__]
 this.s = None
 this.prep = {}
 this.debuglevel=1
+this.version="4.0.0"
 
 window=tk.Tk()
 window.withdraw()
@@ -29,6 +31,152 @@ window.withdraw()
 # Lets capture the plugin name we want the name - "EDMC -"
 myPlugin = "USS Survey"
 
+class CanonnReport:
+
+	def __init__(self,label):
+		debug("Initiating Cannon Report")
+		
+		self.label=label
+		self.threat=0
+		self.probe=0
+		self.sensor=0
+		self.scout=0
+		self.cyclops=0
+		self.basilisk=0
+		self.medusa=0
+		self.cobra=0
+		
+	def setThreat(self,threat):
+		self.threat=threat
+		self.setReport()
+				
+	def incProbe(self):
+		self.probe+=1
+		self.setReport()
+		
+	def incCobra(self):
+		self.cobra+=1
+		self.setReport()		
+				
+	def incSensor(self):
+		self.sensor+=1
+		self.setReport()
+		
+	def incScout(self):
+		self.scout+=1		
+		self.setReport()
+		
+	def incCyclops(self):
+		self.cyclops+=1		
+		self.setReport()
+		
+	def incBasilisk(self):
+		self.basilisk+=1		
+		self.setReport()
+		
+	def incMedusa(self):
+		self.medusa+=1	
+		self.setReport()
+		
+	def setSpace(self):
+		self.probe=0
+		self.sensor=0
+		self.scout=0
+		self.cyclops=0
+		self.basilisk=0
+		self.medusa=0
+		self.cobra=0
+		self.setReport()
+		
+	def hyperLink(self,event):
+		url=self.getUrl("viewform")
+		webbrowser.open(url)
+		self.hide()
+		
+	def getThings(self,report,thing,quantity):
+		if quantity==1:
+			return report+" 1 "+thing
+		if quantity > 1:
+			return report+" "+str(quantity)+" "+thing+"s"
+		return report
+		
+	def hide(self):
+		this.BASILISK.grid_remove()
+		this.CYCLOPS.grid_remove()
+		this.MEDUSA.grid_remove()
+		this.PROBE.grid_remove()
+		this.SCOUT.grid_remove()
+		this.SENSOR.grid_remove()
+		this.SPACE.grid_remove()
+		this.TRANSMIT.grid_remove()
+		this.COBRA.grid_remove()
+		this.canonnReportDesc.grid_remove()
+		
+	def transmit(self):
+		debug("Transmitting",2)
+		url=self.getUrl("formResponse")
+		r = requests.get(url)
+		self.hide()
+		
+	def ussDrop(self,cmdr, system, station, entry):
+		if entry['USSType'] == "$USS_Type_NonHuman;":
+			self.uss_type=entry['USSType']
+			self.threat=str(entry['USSThreat'])		
+			self.system=system
+			self.commander=cmdr
+			self.setSpace()
+			this.BASILISK.grid()
+			this.CYCLOPS.grid()
+			this.MEDUSA.grid()
+			this.PROBE.grid()
+			this.SCOUT.grid()
+			this.SENSOR.grid()
+			this.SPACE.grid()
+			this.TRANSMIT.grid()
+			this.COBRA.grid()
+			this.canonnReportDesc.grid()			
+	
+	
+	def getUrl(self,action):
+		url="https://docs.google.com/forms/d/e/1FAIpQLSdspuO9LP1byQFx4oeMNq9FT4eo34mgqpQTo-6oYZOXoX0PtA/"+action+"?usp=pp_url"
+		url+="&entry.1699877803="+quote_plus(self.commander)
+		url+="&entry.758432443="+quote_plus(self.system)
+		url+="&entry.740257661="+str(self.threat)
+		url+="&entry.1192850048="+str(self.probe)
+		url+="&entry.500127414="+str(self.sensor)
+		url+="&entry.639490147="+str(self.scout)
+		url+="&entry.265020225="+str(self.cyclops)
+		url+="&entry.598670618="+str(self.basilisk)
+		url+="&entry.950835942="+str(self.medusa)	
+		url+="&entry.1268549011="+str(self.cobra)
+		url+="&entry.1201289190=No"
+		url+="&entry.1758654357="+str(this.guid)+"&submit=Submit"
+		return url
+		#&entry.671628463=self.hostile
+		#&entry.1276226296=self.description
+		#&entry.1201289190=self.scanned
+		#&entry.2069330363=self.core
+		#&entry.2082917464=self.inner
+		#&entry.1904732354=self.outer
+		#&entry.1121979243=self.image
+		
+	
+	def setReport(self):
+		self.report="Threat "+str(self.threat)+":"
+		self.report=self.getThings(self.report,"probe",self.probe)
+		self.report=self.getThings(self.report,"sensor",self.sensor)
+		self.report=self.getThings(self.report,"scout",self.scout)
+		self.report=self.getThings(self.report,"cyclops",self.cyclops)
+		self.report=self.getThings(self.report,"basilisk",self.basilisk)
+		self.report=self.getThings(self.report,"medusa",self.medusa)
+		self.report=self.getThings(self.report,"humman ship",self.cobra)
+		if self.probe+self.sensor+self.scout+self.cyclops+self.basilisk+self.medusa+self.cobra == 0:
+			self.report=self.report+" click icons to report thargoids"
+		self.label["text"]=self.report
+		self.label["url"]=self.getUrl("viewform")
+		
+		
+		
 class PlanetaryScan:
 	
 	# we want to split the planet surface into searchable sections
@@ -107,8 +255,7 @@ class USSDetector:
 			#print url
 			r = requests.get(url)	
 			debug(r,2)
-			if self.usstype == "$USS_Type_NonHuman;":
-				setUssReport(system,self.threat,entry["timestamp"])
+			
 				
 class HyperdictionDetector:		
 	'Class for Detecting Hyperdictions'
@@ -146,13 +293,15 @@ class HyperdictionDetector:
 class news:
 	def __init__(self,frame):
 		debug("Initiating News")
-		self.feed_url="https://docs.google.com/spreadsheets/d/e/2PACX-1vTT7azBCL7FxjSEy1RBw52u1o3FXdQGIIpTlq1K1hMt5OHmDzJ_9Kjx3R952I9RrDWFC0NwHUPDlC9s/pub?gid=0&single=true&output=tsv"
+		self.feed_url="https://docs.google.com/spreadsheets/d/e/2PACX-1vSy9ij93j2qbwD-1_bXlI5IfO4EUD4ozNX2GJ2Do5tZNl-udWIqBHxYbtmcMRwvF6favzay3zY2LpH5/pub?gid=1876886084&single=true&output=tsv"
+		self.version_url="https://docs.google.com/spreadsheets/d/e/2PACX-1vSy9ij93j2qbwD-1_bXlI5IfO4EUD4ozNX2GJ2Do5tZNl-udWIqBHxYbtmcMRwvF6favzay3zY2LpH5/pub?gid=0&single=true&output=tsv"
 		this.description = tk.Message(frame,width=200)
 		this.news_label = tk.Label(frame, text=  "Report:")
 		this.newsitem= HyperlinkLabel(frame, compound=tk.RIGHT, popup_copy = True)
 		this.news_label.grid(row = 3, column = 0, sticky=tk.W)
 		this.newsitem.grid(row = 3, column = 1, columnspan=3, sticky=tk.W)	
-		this.newsitem["text"]= None
+		this.newsitem["text"]= "News"
+		this.news_label["text"]= "News"
 		this.newsitem.grid_remove()
 		this.news_label.grid_remove()
 		self.getPost()
@@ -160,24 +309,32 @@ class news:
 			
 		
 	def getPost(self):
-		feed = requests.get(self.feed_url)	
-		debug(feed.content,2)
 		
-		lines=[]
-		lines = feed.content.split("\r\n")
-		line = []
-		try:
-			line = lines[5].split("\t")
+		versions = requests.get(self.version_url)	
+		
+		getnews=True
+		for line in versions.content.split("\r\n"):
+			rec=line.split("\t")
+			if rec[0] == 'EDMC-USS-Survey' and rec[1] != this.version:
+				this.newsitem["text"] = "Please upgrade USS Survey to release; "+rec[1]
+				this.newsitem["url"] = rec[2]
+				this.newsitem.grid()	
+				this.news_label.grid()
+				getnews=False
+				
+		
+		if getnews:
+			feed = requests.get(self.feed_url)		
+			debug(feed.content,2)
+			lines=feed.content.split("\r\n")
+			## only want most recent news item
+			line=lines[1]
+			rec=line.split("\t")
+			this.newsitem["text"] = rec[2]
+			this.newsitem["url"] = rec[1]
 			this.newsitem.grid()	
-			this.news_label.grid()	
-			
-			this.news_label["text"] = "News"
-			this.newsitem["text"] = line[0]
-			this.newsitem["url"] = line[1]
-
-		except:
-			this.newsitem.grid_remove()
-			this.news_label.grid_remove()	
+			this.news_label.grid()
+		
 			
 class Patrol:
 	def __init__(self,frame):
@@ -219,6 +376,8 @@ class Patrol:
 		self.system = { "x": x, "y": y, "z": z, "name": data["lastSystem"]["name"] }	
 		debug(self.system,2)
 		self.showPatrol(data["commander"]["name"])
+		
+	
 		
 	def showPatrol(self,cmdr):
 		merge_visited()
@@ -362,8 +521,15 @@ def plugin_start():
 	this._IMG_VISITED = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'/tick3.gif')
 	this._IMG_IGNORE = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'/cross.gif')
 	this._IMG_CLIPBOARD = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'/clipboard.gif')
-	
-
+	this._IMG_BASILISK = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'\Icons\LCU_Basilisk_25px.gif')
+	this._IMG_CYCLOPS = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'\Icons\LCU_Cyclops_25px.gif')
+	this._IMG_MEDUSA = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'\Icons\LCU_Medusa_25px.gif')
+	this._IMG_PROBE = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'\Icons\LCU_Probe_25px.gif')
+	this._IMG_SCOUT = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'\Icons\LCU_Scout_25px_1.gif')
+	this._IMG_SENSOR = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'\Icons\LCU_Sensor_25px.gif')
+	this._IMG_SPACE = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'\Icons\LCU_Space_25px.gif')
+	this._IMG_TRANSMIT = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'\Icons\\transmit.gif')
+	this._IMG_COBRA = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'\Icons\\cobra.gif')	
 	
 	this.patrol=get_patrol()
 	merge_visited()
@@ -374,7 +540,8 @@ def plugin_start():
 def copy_patrol_to_clipboard(event):
 	window.clipboard_clear()  # clear clipboard contents
 	window.clipboard_append(this.clip)  	
-	
+		
+
 	
 def plugin_app(parent):
 
@@ -382,8 +549,18 @@ def plugin_app(parent):
 	#create a new frame as a containier for the status
 	
 	this.frame = tk.Frame(parent)
+	this.buttonbar = tk.Frame(this.frame)
 	#We want three columns, label, text, button
 	this.frame.columnconfigure(5, weight=1)
+	this.buttonbar.columnconfigure(7, weight=1)
+	this.buttonbar.grid(row = 4, column = 0, columnspan=5, sticky=tk.W)
+
+	#this.canonnReportDesc = tk.Message(this.frame,width=200)
+	#this.canonnReportDesc = tk.Label(this.frame,wraplength=200)
+	this.canonnReportDesc = HyperlinkLabel(this.frame,wraplength=200,popup_copy = False)
+	this.canonnReportDesc.grid(row = 5, column = 0, columnspan=4, sticky=tk.W)
+	this.canonnReport=CanonnReport(canonnReportDesc);	
+	this.canonnReportDesc.bind("<Button-1>", this.canonnReport.hyperLink)  
 	
 	this.ussInator = USSDetector(frame)
 	this.hyperdictionInator = HyperdictionDetector(frame)
@@ -402,6 +579,41 @@ def plugin_app(parent):
 	this.cross = tk.Label(this.frame, anchor=tk.W, image=this._IMG_IGNORE)
 	
 	#tk.text_widget.window_create("insert", window=image_link)
+	
+	
+	this.BASILISK = tk.Button(this.buttonbar, anchor=tk.W, image=this._IMG_BASILISK, command=canonnReport.incBasilisk)
+	this.CYCLOPS = tk.Button(this.buttonbar, anchor=tk.W, image=this._IMG_CYCLOPS, command=canonnReport.incCyclops)
+	this.MEDUSA = tk.Button(this.buttonbar, anchor=tk.W, image=this._IMG_MEDUSA, command=canonnReport.incMedusa)
+	this.PROBE = tk.Button(this.buttonbar, anchor=tk.W, image=this._IMG_PROBE, command=canonnReport.incProbe)
+	this.SCOUT = tk.Button(this.buttonbar, anchor=tk.W, image=this._IMG_SCOUT, command=canonnReport.incScout)
+	this.SENSOR = tk.Button(this.buttonbar, anchor=tk.W, image=this._IMG_SENSOR, command=canonnReport.incSensor)
+	this.SPACE = tk.Button(this.buttonbar, anchor=tk.W, image=this._IMG_SPACE, command=canonnReport.setSpace)
+	this.COBRA = tk.Button(this.buttonbar, anchor=tk.W, image=this._IMG_COBRA, command=canonnReport.incCobra)
+	this.TRANSMIT = tk.Button(this.buttonbar, anchor=tk.W, image=this._IMG_VISITED, command=canonnReport.transmit)
+	
+	
+
+	
+	this.SPACE.grid(row = 0, column = 0, sticky=tk.W)
+	this.PROBE.grid(row = 0, column = 1, sticky=tk.W)
+	this.SENSOR.grid(row = 0, column = 2, sticky=tk.W)	
+	this.SCOUT.grid(row = 0, column = 3, sticky=tk.W)
+	this.CYCLOPS.grid(row = 0, column = 4, sticky=tk.W)
+	this.BASILISK.grid(row = 0, column = 5, sticky=tk.W)
+	this.MEDUSA.grid(row = 0, column = 6, sticky=tk.W)
+	this.COBRA.grid(row = 0, column = 7, sticky=tk.W)
+	this.TRANSMIT.grid(row = 0, column = 8, sticky=tk.W)
+	
+	this.BASILISK.grid_remove()
+	this.CYCLOPS.grid_remove()
+	this.MEDUSA.grid_remove()
+	this.PROBE.grid_remove()
+	this.SCOUT.grid_remove()
+	this.SENSOR.grid_remove()
+	this.SPACE.grid_remove()
+	this.TRANSMIT.grid_remove()
+	this.COBRA.grid_remove()
+	this.canonnReportDesc.grid_remove()
 	
 	this.clipboard.bind("<Button-1>", copy_patrol_to_clipboard)  
 	
@@ -482,14 +694,18 @@ def journal_entry(cmdr, system, station, entry):
 	this.guid = uuid.uuid1()
 	this.cmdr=cmdr
 	  
-	this.newsFeed.getPost()  
+	
 	  
 	if entry['event'] == 'USSDrop':
 		this.ussInator.ussDrop(cmdr, system, station, entry)
+		this.canonnReport.ussDrop(cmdr, system, station, entry)
 		
 	if entry['event'] == 'SupercruiseExit':
 		# we need to check if we dropped from a uss
 		this.ussInator.SupercruiseExit(cmdr, system, station, entry)		
+	
+	if entry['event'] == 'StartJump':	
+		this.newsFeed.getPost()  
 		
 	if entry['event'] == 'StartJump' and entry['JumpType'] == 'Hyperspace':
 			
@@ -502,7 +718,7 @@ def journal_entry(cmdr, system, station, entry):
 				
 	
 	if entry['event'] == 'FSDJump':
-			
+		
 		debug("FSDJump")
 		debug(entry,2)
 			
@@ -533,18 +749,7 @@ def setHyperReport(sysfrom,systo):
 	this.report_label.grid()
 	this.report.grid()			
 	
-def setUssReport(system,threat,timestamp):
-	this.report_label["text"] = "NHSS USS"
-	this.report["text"] = "Report Thargoid activity to Canonn"
-	
-	# Timesytamp 2017-10-14T15:08:24Z
-	date,part=timestamp.split("T")
-	time=part[:5]
-	
-	this.report["url"] = "https://docs.google.com/forms/d/e/1FAIpQLScsU0RZLWl2JPEW-Oy3D1FBGi2G7wGZTrFHe9mOIdLfX0wTEQ/viewform?usp=pp_url&entry.745898940="+quote_plus(system)+"&entry.1910321643="+str(threat)+"&entry.829248547="+date+"&entry.1395484353="+time+"&entry.689381068="+str(this.guid)
-	#this.report["url"] = "https://docs.google.com/forms/d/e/1FAIpQLScsU0RZLWl2JPEW-Oy3D1FBGi2G7wGZTrFHe9mOIdLfX0wTEQ/viewform?entry.745898940="+quote_plus(system)+"&entry.829248547&entry.1395484353&entry.191907177"
-	this.report_label.grid()
-	this.report.grid()				
+		
 			
 def setPatrol(nearest,distance,instructions):
 
