@@ -5,6 +5,7 @@ import ttk
 import Tkinter as tk
 import requests
 import os
+import csv
 import uuid
 from urllib import quote_plus
 from  math import sqrt,pow,trunc
@@ -22,6 +23,7 @@ this = sys.modules[__name__]
 this.s = None
 this.prep = {}
 this.debuglevel=1
+this.version="4.0.0"
 
 window=tk.Tk()
 window.withdraw()
@@ -291,13 +293,15 @@ class HyperdictionDetector:
 class news:
 	def __init__(self,frame):
 		debug("Initiating News")
-		self.feed_url="https://docs.google.com/spreadsheets/d/e/2PACX-1vTT7azBCL7FxjSEy1RBw52u1o3FXdQGIIpTlq1K1hMt5OHmDzJ_9Kjx3R952I9RrDWFC0NwHUPDlC9s/pub?gid=0&single=true&output=tsv"
+		self.feed_url="https://docs.google.com/spreadsheets/d/e/2PACX-1vSy9ij93j2qbwD-1_bXlI5IfO4EUD4ozNX2GJ2Do5tZNl-udWIqBHxYbtmcMRwvF6favzay3zY2LpH5/pub?gid=1876886084&single=true&output=tsv"
+		self.version_url="https://docs.google.com/spreadsheets/d/e/2PACX-1vSy9ij93j2qbwD-1_bXlI5IfO4EUD4ozNX2GJ2Do5tZNl-udWIqBHxYbtmcMRwvF6favzay3zY2LpH5/pub?gid=0&single=true&output=tsv"
 		this.description = tk.Message(frame,width=200)
 		this.news_label = tk.Label(frame, text=  "Report:")
 		this.newsitem= HyperlinkLabel(frame, compound=tk.RIGHT, popup_copy = True)
 		this.news_label.grid(row = 3, column = 0, sticky=tk.W)
 		this.newsitem.grid(row = 3, column = 1, columnspan=3, sticky=tk.W)	
-		this.newsitem["text"]= None
+		this.newsitem["text"]= "News"
+		this.news_label["text"]= "News"
 		this.newsitem.grid_remove()
 		this.news_label.grid_remove()
 		self.getPost()
@@ -305,24 +309,32 @@ class news:
 			
 		
 	def getPost(self):
-		feed = requests.get(self.feed_url)	
-		debug(feed.content,2)
 		
-		lines=[]
-		lines = feed.content.split("\r\n")
-		line = []
-		try:
-			line = lines[6].split("\t")
+		versions = requests.get(self.version_url)	
+		
+		getnews=True
+		for line in versions.content.split("\r\n"):
+			rec=line.split("\t")
+			if rec[0] == 'EDMC-USS-Survey' and rec[1] != this.version:
+				this.newsitem["text"] = "Please upgrade USS Survey to release; "+rec[1]
+				this.newsitem["url"] = rec[2]
+				this.newsitem.grid()	
+				this.news_label.grid()
+				getnews=False
+				
+		
+		if getnews:
+			feed = requests.get(self.feed_url)		
+			debug(feed.content,2)
+			lines=feed.content.split("\r\n")
+			## only want most recent news item
+			line=lines[1]
+			rec=line.split("\t")
+			this.newsitem["text"] = rec[2]
+			this.newsitem["url"] = rec[1]
 			this.newsitem.grid()	
-			this.news_label.grid()	
-			
-			this.news_label["text"] = "News"
-			this.newsitem["text"] = line[0]
-			this.newsitem["url"] = line[1]
-
-		except:
-			this.newsitem.grid_remove()
-			this.news_label.grid_remove()	
+			this.news_label.grid()
+		
 			
 class Patrol:
 	def __init__(self,frame):
@@ -682,7 +694,7 @@ def journal_entry(cmdr, system, station, entry):
 	this.guid = uuid.uuid1()
 	this.cmdr=cmdr
 	  
-	this.newsFeed.getPost()  
+	
 	  
 	if entry['event'] == 'USSDrop':
 		this.ussInator.ussDrop(cmdr, system, station, entry)
@@ -691,6 +703,9 @@ def journal_entry(cmdr, system, station, entry):
 	if entry['event'] == 'SupercruiseExit':
 		# we need to check if we dropped from a uss
 		this.ussInator.SupercruiseExit(cmdr, system, station, entry)		
+	
+	if entry['event'] == 'StartJump':	
+		this.newsFeed.getPost()  
 		
 	if entry['event'] == 'StartJump' and entry['JumpType'] == 'Hyperspace':
 			
@@ -703,7 +718,7 @@ def journal_entry(cmdr, system, station, entry):
 				
 	
 	if entry['event'] == 'FSDJump':
-			
+		
 		debug("FSDJump")
 		debug(entry,2)
 			
