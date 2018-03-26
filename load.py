@@ -154,8 +154,12 @@ class ussSelect:
 		if entry['event'] == "SupercruiseEntry" or entry['event'] == "FSDJump":
 			self.container.grid()
 			self.cruiseTime=datetime.datetime.now()
-
-			self.cruiseStamp=entry["timestamp"][0:-1]
+			ts=entry["timestamp"]
+			year=ts[0:4]
+			month=ts[5:7]
+			day=ts[8:10]
+			time=ts[11:-1]
+			self.cruiseStamp=str(day)+"/"+str(month)+"/"+str(year)+" "+time
 		if entry['event'] == "SupercruiseExit":
 			self.container.grid_remove()		
 			
