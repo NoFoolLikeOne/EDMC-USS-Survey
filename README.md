@@ -14,6 +14,11 @@ An EDMC Plugin that logs USS and Hyperdiction details through a google form to a
 
 ![Screenshot](screenshot.png)
 
+Users may also report USS without dropping while they are in supercruise. 
+
+![Screenshot](ussreport.png)
+
+
 # Survey Results
 
 [USS results spreadheet](https://docs.google.com/spreadsheets/d/1_LsPtmXS7aUGYTJ-OomdE4gsYqkrYsmS7qzSpIUhQ4s/edit?usp=sharing)
