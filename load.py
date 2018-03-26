@@ -106,6 +106,9 @@ class ussSelect:
 		self.submitTime=datetime.datetime.now()
 		d=self.submitTime-self.cruiseTime
 		self.deltaSeconds=d.seconds
+		# Its not much use recording time since we entered supercruise
+		# So we will restart the timer when we report.
+		self.cruiseTime=datetime.datetime.now()
 		url=self.getUrl()
 		Reporter(url).start()
 		
@@ -151,9 +154,8 @@ class ussSelect:
 		if entry['event'] == "SupercruiseEntry" or entry['event'] == "FSDJump":
 			self.container.grid()
 			self.cruiseTime=datetime.datetime.now()
-			ts=entry["timestamp"][0:-1]
-			timestamp=str(ts[0:3])+"/"/+str(ts[5:6])+"/"+str(ts[8:9])+" "+ts[11:18]
-			self.cruiseStamp=timestamp
+
+			self.cruiseStamp=entry["timestamp"][0:-1]
 		if entry['event'] == "SupercruiseExit":
 			self.container.grid_remove()		
 			
