@@ -12,6 +12,7 @@ from  math import sqrt,pow,trunc
 from ttkHyperlinkLabel import HyperlinkLabel
 import datetime
 import webbrowser
+import threading
 
 
 from config import applongname, appversion
@@ -23,7 +24,7 @@ this = sys.modules[__name__]
 this.s = None
 this.prep = {}
 this.debuglevel=1
-this.version="4.0.1"
+this.version="4.1.0"
 
 window=tk.Tk()
 window.withdraw()
@@ -31,6 +32,131 @@ window.withdraw()
 # Lets capture the plugin name we want the name - "EDMC -"
 myPlugin = "USS Survey"
 
+
+class Reporter(threading.Thread):
+    def __init__(self, payload):
+        threading.Thread.__init__(self)
+        self.payload = payload
+
+    def run(self):
+        try:
+            requests.get(self.payload)
+            debug(self.payload)
+        except:
+            print("["+myPlugin+"] Issue posting message " + str(sys.exc_info()[0]))
+
+class ussSelect:
+
+	def __init__(self,frame):
+		debug("Initiating USS Select")
+		self.frame=frame
+		UssTypes = [
+			"Ceremonial Comms",
+			"Combat Aftermath",
+			"Convoy Dispersal",
+			"Degraded Emissions",
+			"Distress Call",
+			"Encoded Emissions",
+			"High Grade Emissions",
+			"Mission Target",
+			"Non Human Signal",
+			"Trading Beacon",
+			"Weapons Fire"
+		]
+		self._IMG_VISITED = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'/tick3.gif')
+		
+		listbar = tk.Frame(frame)
+		self.container=listbar
+		listbar.grid(row = 6, column = 0,columnspan=2)
+		self.system="Test"
+		self.usstime="Test"
+		
+		
+		self.typeVar = tk.StringVar(listbar)
+		self.typeVar.set(UssTypes[8]) # default value
+		popupTypes = tk.OptionMenu(listbar, self.typeVar, *UssTypes)
+		self.typeVar.trace('w', self.changeType)
+		popupTypes.grid(row = 0, column = 0)
+		
+		self.Threats = [
+			"Threat 0",
+			"Threat 1",
+			"Threat 2",
+			"Threat 3",
+			"Threat 4",			
+			"Threat 5",			
+			"Threat 6",
+			"Threat 7",
+			"Threat 8",
+			"Threat 9",			
+		]
+		
+		self.threatVar = tk.StringVar(listbar)
+		self.threatVar.set(self.Threats[0]) # default value
+		popupThreats = tk.OptionMenu(listbar, self.threatVar, *self.Threats)
+		
+		popupThreats.grid(row = 0, column = 1)
+		transmit = tk.Button(listbar, anchor=tk.W, image=this._IMG_VISITED, command=self.transmit)
+		transmit.grid(row = 0, column = 2)
+		self.container.grid_remove()
+		
+	def transmit(self):
+		debug(self.typeVar.get())
+		debug(self.threatVar.get())
+		self.submitTime=datetime.datetime.now()
+		d=self.submitTime-self.cruiseTime
+		self.deltaSeconds=d.seconds
+		url=self.getUrl()
+		Reporter(url).start()
+		
+	def getUrl(self):
+		url="https://docs.google.com/forms/d/e/1FAIpQLSeOBbUTiD64FyyzkIeZfO5UMfqeuU2lsRf3_Ulh7APddd91JA/formResponse?usp=pp_url"
+		url+="&entry.306505776="+self.system
+		url+="&entry.167750222="+self.cruiseStamp
+		url+="&entry.1559250350="+self.typeVar.get()
+		url+="&entry.1031843658="+self.threatVar.get()[7]
+		url+="&entry.1519036101="+self.cmdr
+		url+="&entry.1328849583="+str(self.deltaSeconds)
+		
+		return url
+		
+	def changeType(self,*args):
+		sel = self.typeVar.get();
+		if sel == "Ceremonial Comms":
+			self.threatVar.set(self.Threats[0]) # default value
+		if sel == "Combat Aftermath":
+			self.threatVar.set(self.Threats[0]) # default value
+		if sel == "Convoy Dispersal":
+			self.threatVar.set(self.Threats[3]) # default value
+		if sel == "Degraded Emissions":
+			self.threatVar.set(self.Threats[0]) # default value
+		if sel == "Distress Call":
+			self.threatVar.set(self.Threats[2]) # default value
+		if sel == "Encoded Emissions":
+			self.threatVar.set(self.Threats[0]) # default value
+		if sel == "High Grade Emissions":
+			self.threatVar.set(self.Threats[0]) # default value
+		if sel == "Mission Target":
+			self.threatVar.set(self.Threats[3]) # default value
+		if sel == "Non Human Signal":
+			self.threatVar.set(self.Threats[5]) # default value			
+		if sel == "Trading Beacon":
+			self.threatVar.set(self.Threats[1]) # default value
+		if sel == "Weapons Fire":			
+			self.threatVar.set(self.Threats[1]) # default value		
+
+	def journal_entry(self,cmdr, system, station, entry):
+		self.system=system
+		self.cmdr=cmdr
+		if entry['event'] == "SupercruiseEntry" or entry['event'] == "FSDJump":
+			self.container.grid()
+			self.cruiseTime=datetime.datetime.now()
+			ts=entry["timestamp"][0:-1]
+			timestamp=str(ts[0:3])+"/"/+str(ts[5:6])+"/"+str(ts[8:9])+" "+ts[11:18]
+			self.cruiseStamp=timestamp
+		if entry['event'] == "SupercruiseExit":
+			self.container.grid_remove()		
+			
 class CanonnReport:
 
 	def __init__(self,label):
@@ -115,7 +241,7 @@ class CanonnReport:
 	def transmit(self):
 		debug("Transmitting",2)
 		url=self.getUrl("formResponse")
-		r = requests.get(url)
+		Reporter(url).start()
 		self.hide()
 		
 	def ussDrop(self,cmdr, system, station, entry):
@@ -169,7 +295,7 @@ class CanonnReport:
 		self.report=self.getThings(self.report,"cyclops",self.cyclops)
 		self.report=self.getThings(self.report,"basilisk",self.basilisk)
 		self.report=self.getThings(self.report,"medusa",self.medusa)
-		self.report=self.getThings(self.report,"humman ship",self.cobra)
+		self.report=self.getThings(self.report,"human ship",self.cobra)
 		if self.probe+self.sensor+self.scout+self.cyclops+self.basilisk+self.medusa+self.cobra == 0:
 			self.report=self.report+" click icons to report thargoids"
 		self.label["text"]=self.report
@@ -253,8 +379,8 @@ class USSDetector:
 								
 			url = "https://docs.google.com/forms/d/e/1FAIpQLScVk2LW6EkIW3hL8EhuLVI5j7jQ1ZmsYCLRxgCZlpHiN8JdcA/formResponse?usp=pp_url&entry.1236915632="+str(this.guid)+"&entry.106150081="+cmdr+"&entry.582675236="+quote_plus(entry['StarSystem'])+"&entry.158339236="+str(self.sysx)+"&entry.608639155="+str(self.sysy)+"&entry.1737639503="+str(self.sysz)+"&entry.413701316="+quote_plus(entry['Body'])+"&entry.1398738264="+str(dsol)+"&entry.922392846="+str(dmerope)+"&entry.218543806="+quote_plus(self.usstype)+"&entry.455413428="+quote_plus(self.usslocal)+"&entry.790504343="+quote_plus(self.threat)+"&submit=Submit"
 			#print url
-			r = requests.get(url)	
-			debug(r,2)
+			Reporter(url).start()
+			
 			
 				
 class HyperdictionDetector:		
@@ -287,7 +413,7 @@ class HyperdictionDetector:
 			debug("Hyperdiction detected("+self.end_jump+","+self.start_jump+","+self.target_jump+")",2)
 			url = "https://docs.google.com/forms/d/e/1FAIpQLSfDFsZiD1btBXSHOlw2rNK5wPbdX8fF7JBCtiflX8jPgJ-OqA/formResponse?usp=pp_url&entry.1282398650="+str(guid)+"&entry.2105897249="+quote_plus(cmdr)+"&entry.448120794="+quote_plus(self.start_jump)+"&entry.1108314590="+str(startx)+"&entry.1352373541="+str(starty)+"&entry.440246589="+str(startz)+"&entry.163179951="+quote_plus(self.target_jump)+"&entry.549665465="+str(endx)+"&entry.1631305292="+str(endy)+"&entry.674481857="+str(endz)+"&entry.1752982672="+str(startmerope)+"&entry.659677957="+str(endmerope)+"&submit=Submit"
 			#print url
-			r = requests.get(url)	
+			Reporter(url).start()
 			setHyperReport(self.start_jump,self.target_jump)
 
 class news:
@@ -297,7 +423,7 @@ class news:
 		self.version_url="https://docs.google.com/spreadsheets/d/e/2PACX-1vSy9ij93j2qbwD-1_bXlI5IfO4EUD4ozNX2GJ2Do5tZNl-udWIqBHxYbtmcMRwvF6favzay3zY2LpH5/pub?gid=0&single=true&output=tsv"
 		this.description = tk.Message(frame,width=200)
 		this.news_label = tk.Label(frame, text=  "Report:")
-		this.newsitem= HyperlinkLabel(frame, compound=tk.RIGHT, popup_copy = True)
+		this.newsitem= HyperlinkLabel(frame, compound=tk.LEFT, popup_copy = True)
 		this.news_label.grid(row = 3, column = 0, sticky=tk.W)
 		this.newsitem.grid(row = 3, column = 1, columnspan=3, sticky=tk.W)	
 		this.newsitem["text"]= "News"
@@ -306,6 +432,7 @@ class news:
 		this.news_label.grid_remove()
 		self.getPost()
 		
+	
 			
 		
 	def getPost(self):
@@ -418,7 +545,7 @@ class meropeLog:
 		 
 		if getDistanceMerope(x,y,z) <= 200:
 			url="https://docs.google.com/forms/d/e/1FAIpQLSeqLdzXzubMFicyDzDvSN6YIwFW9Txx71d1asGiAIt23j6vKQ/formResponse?usp=pp_url&entry.1604333823="+quote_plus(system)+"&entry.939851024="+str(x)+"&entry.1593775066="+str(y)+"+&entry.1149646403="+str(z)
-			r = requests.get(url)
+			Reporter(url).start()
 
 			
 def dateDiffMinutes(s1,s2):
@@ -548,7 +675,11 @@ def plugin_app(parent):
 	this.parent = parent
 	#create a new frame as a containier for the status
 	
+	
+	
 	this.frame = tk.Frame(parent)
+	
+	this.ussSelector = ussSelect(this.frame)
 	this.buttonbar = tk.Frame(this.frame)
 	#We want three columns, label, text, button
 	this.frame.columnconfigure(5, weight=1)
@@ -694,7 +825,7 @@ def journal_entry(cmdr, system, station, entry):
 	this.guid = uuid.uuid1()
 	this.cmdr=cmdr
 	  
-	
+	this.ussSelector.journal_entry(cmdr, system, station, entry)
 	  
 	if entry['event'] == 'USSDrop':
 		this.ussInator.ussDrop(cmdr, system, station, entry)
