@@ -26,8 +26,7 @@ this.prep = {}
 this.debuglevel=1
 this.version="4.1.0"
 
-window=tk.Tk()
-window.withdraw()
+
 
 # Lets capture the plugin name we want the name - "EDMC -"
 myPlugin = "USS Survey"
@@ -671,8 +670,12 @@ def plugin_start():
 	return myPlugin
 	
 def copy_patrol_to_clipboard(event):
+	window=tk.Tk()
+	window.withdraw()
 	window.clipboard_clear()  # clear clipboard contents
 	window.clipboard_append(this.clip)  	
+	window.destroy()
+	
 		
 
 	
@@ -912,7 +915,7 @@ def setPatrol(nearest,distance,instructions):
 def cmdr_data(data):
 	this.patrolZone.cmdrData(data)
 	
-def plugin_stop():
-	debug("Destroying Clipboard",3)
-	window.destroy()
+# def plugin_stop():
+	# debug("Destroying Clipboard",3)
+	# window.destroy()
 	
