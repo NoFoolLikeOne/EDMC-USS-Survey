@@ -24,13 +24,33 @@ this = sys.modules[__name__]
 this.s = None
 this.prep = {}
 this.debuglevel=1
-this.version="4.1.0"
+this.version="4.1.1"
 
 
 
 # Lets capture the plugin name we want the name - "EDMC -"
 myPlugin = "USS Survey"
 
+def plugin_prefs(parent, cmdr, is_beta):
+	"""
+	Return a TK Frame for adding to the EDMC settings dialog.
+	"""
+	this.anon = tk.IntVar(value=config.getint("Anonymous"))	# Retrieve saved value from config
+	frame = nb.Frame(parent)
+	#nb.Label(frame, text="Hello").grid()
+	#nb.Label(frame, text="Make me anonymous").grid()
+	nb.Checkbutton(frame, text="I want to be anonymous", variable=this.anon).grid()
+	return frame
+   
+def prefs_changed(cmdr, is_beta):
+	"""
+	Save settings.
+	"""
+	config.set('Anonymous', this.anon.get())	   
+	if config.getint("Anonymous") >0:
+		debug("I want to be anonymous")		
+	else:
+		debug("I want to be famous")		
 
 class Reporter(threading.Thread):
     def __init__(self, payload):
@@ -62,6 +82,7 @@ class ussSelect:
 			"Trading Beacon",
 			"Weapons Fire"
 		]
+		
 		self._IMG_VISITED = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'/tick3.gif')
 		
 		listbar = tk.Frame(frame)
@@ -159,8 +180,36 @@ class ussSelect:
 			day=ts[8:10]
 			time=ts[11:-1]
 			self.cruiseStamp=str(day)+"/"+str(month)+"/"+str(year)+" "+time
+		if entry['event'] == 'USSDrop':
+			debug("USS Drop")
+			self.threatVar.set(entry['USSThreat'])
+			if entry['USSType'] == '$USS_Type_NonHuman;':
+				self.typeVar.set('Non Human Signal')
+			if entry['USSType'] == '$USS_Type_DistressSignal;':
+				self.typeVar.set('Distress Call')			
+			if entry['USSType'] == '$USS_Type_Salvage;':
+				self.typeVar.set('Degraded Emissions')			
+			if entry['USSType'] == '$USS_Type_WeaponsFire;':
+				self.typeVar.set('Weapons Fire')			
+			if entry['USSType'] == '$USS_Type_ValuableSalvage;':
+				self.typeVar.set('Encoded Emissions')			
+			if entry['USSType'] == '$USS_Type_Aftermath;':
+				self.typeVar.set('Combat Aftermath')			
+			if entry['USSType'] == '$USS_Type_MissionTarget;':
+				self.typeVar.set('Mission Target')			
+			if entry['USSType'] == '$USS_Type_VeryValuableSalvage;':
+				self.typeVar.set('High Grade Emissions')			
+			if entry['USSType'] == '$USS_Type_Convoy;':
+				self.typeVar.set('Convoy Dispersal')			
+			if entry['USSType'] == '$USS_Type_Ceremonial;':
+				self.typeVar.set('Ceremonial Comms')			
+			if entry['USSType'] == '$USS_Type_TradingBeacon;':
+				self.typeVar.set('Trading Beacon')			
+			self.transmit()
 		if entry['event'] == "SupercruiseExit":
 			self.container.grid_remove()		
+		
+			
 			
 class CanonnReport:
 
@@ -507,7 +556,12 @@ class Patrol:
 		x,y,z = edsmGetSystem(data["lastSystem"]["name"])
 		self.system = { "x": x, "y": y, "z": z, "name": data["lastSystem"]["name"] }	
 		debug(self.system,2)
-		self.showPatrol(data["commander"]["name"])
+		if config.getint("Anonymous") >0:
+			cmdr="Anonymous"
+		else:
+			cmdr=data["commander"]["name"]
+			
+		self.showPatrol(cmdr)
 		
 	
 		
@@ -825,11 +879,16 @@ def getDistanceMerope(x1,y1,z1):
 def getDistanceSol(x1,y1,z1):
 	return round(sqrt(pow(float(0)-float(x1),2)+pow(float(0)-float(y1),2)+pow(float(0)-float(z1),2)),2)			
 		
-
+def journal_entry(cmdr, system, station, entry):
+	if config.getint("Anonymous") >0:
+		commander="Anonymous"
+	else:
+		commander=cmdr
 		
+	journal_entry_wrapper(commander, system, station, entry)	
 	
 # Detect journal events
-def journal_entry(cmdr, system, station, entry):
+def journal_entry_wrapper(cmdr, system, station, entry):
 
 	this.guid = uuid.uuid1()
 	this.cmdr=cmdr
