@@ -1,8 +1,6 @@
 # USS Survey 
 An EDMC Plugin that logs USS and Hyperdiction details through a google form to a spreadsheet.
 
-If you wish your data to be anonymous, then please go into settings and request anonymity.
-
 * Displays nearest patrol system prioritise by least visited.
 * User can click on patrol location to view in EDSM
 * User can click on clipboard icon to copy to clipboard
