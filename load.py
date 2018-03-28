@@ -24,7 +24,7 @@ this = sys.modules[__name__]
 this.s = None
 this.prep = {}
 this.debuglevel=1
-this.version="4.1.0"
+this.version="4.1.1"
 
 
 
