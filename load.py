@@ -82,6 +82,7 @@ class ussSelect:
 			"Trading Beacon",
 			"Weapons Fire"
 		]
+		
 		self._IMG_VISITED = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'/tick3.gif')
 		
 		listbar = tk.Frame(frame)
@@ -179,8 +180,36 @@ class ussSelect:
 			day=ts[8:10]
 			time=ts[11:-1]
 			self.cruiseStamp=str(day)+"/"+str(month)+"/"+str(year)+" "+time
+		if entry['event'] == 'USSDrop':
+			debug("USS Drop")
+			self.threatVar.set(entry['USSThreat'])
+			if entry['USSType'] == '$USS_Type_NonHuman;':
+				self.typeVar.set('Non Human Signal')
+			if entry['USSType'] == '$USS_Type_DistressSignal;':
+				self.typeVar.set('Distress Call')			
+			if entry['USSType'] == '$USS_Type_Salvage;':
+				self.typeVar.set('Degraded Emissions')			
+			if entry['USSType'] == '$USS_Type_WeaponsFire;':
+				self.typeVar.set('Weapons Fire')			
+			if entry['USSType'] == '$USS_Type_ValuableSalvage;':
+				self.typeVar.set('Encoded Emissions')			
+			if entry['USSType'] == '$USS_Type_Aftermath;':
+				self.typeVar.set('Combat Aftermath')			
+			if entry['USSType'] == '$USS_Type_MissionTarget;':
+				self.typeVar.set('Mission Target')			
+			if entry['USSType'] == '$USS_Type_VeryValuableSalvage;':
+				self.typeVar.set('High Grade Emissions')			
+			if entry['USSType'] == '$USS_Type_Convoy;':
+				self.typeVar.set('Convoy Dispersal')			
+			if entry['USSType'] == '$USS_Type_Ceremonial;':
+				self.typeVar.set('Ceremonial Comms')			
+			if entry['USSType'] == '$USS_Type_TradingBeacon;':
+				self.typeVar.set('Trading Beacon')			
+			self.transmit()
 		if entry['event'] == "SupercruiseExit":
 			self.container.grid_remove()		
+		
+			
 			
 class CanonnReport:
 
