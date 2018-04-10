@@ -24,7 +24,7 @@ this = sys.modules[__name__]
 this.s = None
 this.prep = {}
 this.debuglevel=1
-this.version="4.1.1"
+this.version="4.2.0"
 
 
 
@@ -134,11 +134,11 @@ class ussSelect:
 		
 	def getUrl(self):
 		url="https://docs.google.com/forms/d/e/1FAIpQLSeOBbUTiD64FyyzkIeZfO5UMfqeuU2lsRf3_Ulh7APddd91JA/formResponse?usp=pp_url"
-		url+="&entry.306505776="+self.system
+		url+="&entry.306505776="+quote_plus(self.system)
 		url+="&entry.167750222="+self.cruiseStamp
 		url+="&entry.1559250350="+self.typeVar.get()
 		url+="&entry.1031843658="+self.threatVar.get()[7]
-		url+="&entry.1519036101="+self.cmdr
+		url+="&entry.1519036101="+quote_plus(self.cmdr)
 		url+="&entry.1328849583="+str(self.deltaSeconds)
 		
 		return url
@@ -879,22 +879,24 @@ def getDistanceMerope(x1,y1,z1):
 def getDistanceSol(x1,y1,z1):
 	return round(sqrt(pow(float(0)-float(x1),2)+pow(float(0)-float(y1),2)+pow(float(0)-float(z1),2)),2)			
 		
-def journal_entry(cmdr, system, station, entry):
+def journal_entry(cmdr, is_beta, system, station, entry, state):
 	if config.getint("Anonymous") >0:
 		commander="Anonymous"
 	else:
 		commander=cmdr
 		
-	journal_entry_wrapper(commander, system, station, entry)	
+	journal_entry_wrapper(commander, is_beta, system, station, entry, state)	
 	
 # Detect journal events
-def journal_entry_wrapper(cmdr, system, station, entry):
+def journal_entry_wrapper(cmdr, is_beta, system, station, entry, state):
 
 	this.guid = uuid.uuid1()
 	this.cmdr=cmdr
 	  
 	this.ussSelector.journal_entry(cmdr, system, station, entry)
-	  
+	faction_kill(cmdr, is_beta, system, station, entry, state)
+	statistics(cmdr, is_beta, system, station, entry, state)	  
+	
 	if entry['event'] == 'USSDrop':
 		this.ussInator.ussDrop(cmdr, system, station, entry)
 		this.canonnReport.ussDrop(cmdr, system, station, entry)
@@ -931,7 +933,43 @@ def journal_entry_wrapper(cmdr, system, station, entry):
 		
 	if entry['event'] == 'StartUp':
 		this.patrolZone.startUp(cmdr, system, station, entry)		
+		
 
+def matches(d, field, value):
+	return field in d and value == d[field]		
+		
+def faction_kill(cmdr, is_beta, system, station, entry, state):
+	if entry['event'] == "FactionKillBond":
+		debug("FactionKillBond",2)
+		factionMatch=(matches(entry, 'VictimFaction', '$faction_Thargoid;') or matches(entry, 'VictimFaction', '$faction_Guardian;'))
+		if factionMatch and 'Reward' in entry:
+			url="https://docs.google.com/forms/d/e/1FAIpQLSevc8RrhOzOq9U0a2VC29N_lgjRfVU9vlF-oKdjhvZu6YnLvw/formResponse?usp=pp_url"
+			url+="&entry.567957318="+quote_plus(cmdr);
+			if is_beta:
+				beta='Y'
+			else: 
+				beta='N'
+			url+="&entry.1848556807="+quote_plus(beta)
+			url+="&entry.1086702490="+quote_plus(system)
+			if station is not None:
+				url+="&entry.1446740035="+quote_plus(station)
+			
+			url+="&entry.396335290="+str(entry["Reward"])
+			url+="&entry.576102634="+quote_plus(entry["AwardingFaction"])
+			url+="&entry.691973931="+quote_plus(entry["VictimFaction"])
+			Reporter(url).start()
+			
+def statistics(cmdr, is_beta, system, station, entry, state):
+	if entry['event'] == "Statistics":
+		url="https://docs.google.com/forms/d/e/1FAIpQLScF_URtGFf1-CyMNr4iuTHkxyxOMWcrZ2ZycrKAiej0eC-hTA/formResponse?usp=pp_url"
+		url+="&entry.613206362="+quote_plus(cmdr)
+		url+="&entry.1085684396="+str(entry['TG_ENCOUNTERS']["TG_ENCOUNTER_WAKES"])
+		url+="&entry.2026302508="+str(entry['TG_ENCOUNTERS']["TG_ENCOUNTER_IMPRINT"])
+		url+="&entry.1600696255="+str(entry['TG_ENCOUNTERS']["TG_ENCOUNTER_TOTAL"])
+		url+="&entry.712826938="+str(entry['TG_ENCOUNTERS']["TG_ENCOUNTER_TOTAL_LAST_TIMESTAMP"])
+		url+="&entry.1384358412="+str(entry['TG_ENCOUNTERS']["TG_SCOUT_COUNT"])
+		Reporter(url).start()
+		
 def setPatrolReport(cmdr,system):
 	debug("Patrol Report Disabled")
 	#this.report_label["text"] = "Patrol Report"
