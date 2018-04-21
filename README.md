@@ -22,6 +22,10 @@ Users may also report USS without dropping while they are in supercruise.
 
 # Survey Results
 
+![Statistics](https://docs.google.com/spreadsheets/d/e/2PACX-1vQGZ9meiqW_-5iDW2MKvwTBXK-RXJkCW53sNELRUH0jp99YZ1Qaj8yTYyFP89nwR803tHFRfEmENdjI/pubchart?oid=397514376&format=image)
+
+
+
 [USS results spreadheet](https://docs.google.com/spreadsheets/d/10SwarpGE6208lY0GpvSZogdk8s0m0bQXoZlZCWkDe1w/edit?usp=sharing)
 [Old USS results spreadheet](https://docs.google.com/spreadsheets/d/1_LsPtmXS7aUGYTJ-OomdE4gsYqkrYsmS7qzSpIUhQ4s/edit?usp=sharing)
 
