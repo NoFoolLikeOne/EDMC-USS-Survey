@@ -24,7 +24,7 @@ this = sys.modules[__name__]
 this.s = None
 this.prep = {}
 this.debuglevel=1
-this.version="4.2.0"
+this.version="4.2.1"
 
 
 
@@ -40,6 +40,7 @@ def plugin_prefs(parent, cmdr, is_beta):
 	#nb.Label(frame, text="Hello").grid()
 	#nb.Label(frame, text="Make me anonymous").grid()
 	nb.Checkbutton(frame, text="I want to be anonymous", variable=this.anon).grid()
+	
 	return frame
    
 def prefs_changed(cmdr, is_beta):
@@ -60,7 +61,7 @@ class Reporter(threading.Thread):
     def run(self):
         try:
             requests.get(self.payload)
-            debug(self.payload)
+            debug(self.payload,2)
         except:
             print("["+myPlugin+"] Issue posting message " + str(sys.exc_info()[0]))
 
@@ -121,8 +122,8 @@ class ussSelect:
 		self.container.grid_remove()
 		
 	def transmit(self):
-		debug(self.typeVar.get())
-		debug(self.threatVar.get())
+		#debug(self.typeVar.get())
+		#debug(self.threatVar.get())
 		self.submitTime=datetime.datetime.now()
 		d=self.submitTime-self.cruiseTime
 		self.deltaSeconds=d.seconds
@@ -357,26 +358,7 @@ class CanonnReport:
 		
 		
 		
-class PlanetaryScan:
-	
-	# we want to split the planet surface into searchable sections
-	# flight time should be around 10 minutes to cover a section. 
-	# Assume 300m/s speed
-	# 200km will take around 8-12 minutes to survey depending on speed. A nice round number
-	# Merope 5C Radius = 1,478 km 
-	# Merope 5C Circumference = 9,286.54 km 
-	# sections around circumference  = 46
-	# Total sections.. 46x23?
-	# pole = 1 section
-	# 
-	
-	def __init__(self,frame):
-		debug("Initiating USS Detector")
-		
-	def SupercruiseExit(self,cmdr, system, station, entry):
-		debug("We have exit near a body")
-		#{ "timestamp":"2016-06-10T14:32:03Z", "event":"SupercruiseExit", "StarSystem":"Yuetu", "Body":"Yuetu B", "BodyType: "Planet"}
-		#if we are at a planet let us find out if it is landable
+
 
 class USSDetector:
 	'Class for Detecting USS Drops'
@@ -893,6 +875,8 @@ def journal_entry_wrapper(cmdr, is_beta, system, station, entry, state):
 	this.guid = uuid.uuid1()
 	this.cmdr=cmdr
 	  
+	startup_stats(cmdr)
+	  
 	this.ussSelector.journal_entry(cmdr, system, station, entry)
 	faction_kill(cmdr, is_beta, system, station, entry, state)
 	statistics(cmdr, is_beta, system, station, entry, state)	  
@@ -910,7 +894,7 @@ def journal_entry_wrapper(cmdr, is_beta, system, station, entry, state):
 		
 	if entry['event'] == 'StartJump' and entry['JumpType'] == 'Hyperspace':
 			
-		debug("StartJump Hyperspace")
+		debug("StartJump Hyperspace",2)
 		debug(entry,2)
 		
 		this.hyperdictionInator.StartJump(cmdr, system, station, entry)
@@ -920,7 +904,7 @@ def journal_entry_wrapper(cmdr, is_beta, system, station, entry, state):
 	
 	if entry['event'] == 'FSDJump':
 		
-		debug("FSDJump")
+		debug("FSDJump",2)
 		debug(entry,2)
 			
 		this.ussInator.FSDJump(cmdr, system, station, entry)
@@ -968,7 +952,22 @@ def statistics(cmdr, is_beta, system, station, entry, state):
 		url+="&entry.1600696255="+str(entry['TG_ENCOUNTERS']["TG_ENCOUNTER_TOTAL"])
 		url+="&entry.712826938="+str(entry['TG_ENCOUNTERS']["TG_ENCOUNTER_TOTAL_LAST_TIMESTAMP"])
 		url+="&entry.1384358412="+str(entry['TG_ENCOUNTERS']["TG_SCOUT_COUNT"])
+		url+="&entry.1091946522="+str(entry['TG_ENCOUNTERS']["TG_ENCOUNTER_TOTAL_LAST_SYSTEM"])
 		Reporter(url).start()
+		
+def startup_stats(cmdr):
+	try:
+		this.first_event
+		debug("First Event",2)
+	except:
+		this.first_event = True
+		url="https://docs.google.com/forms/d/e/1FAIpQLSeuH9Rvt5mw9PGDZLtI6lAoanx5SOq_PKXjr7iPtRBP2QK_vg/formResponse?usp=pp_url"
+		url+="&entry.1825274888="+quote_plus(cmdr)
+		url+="&entry.294392943="+quote_plus(this.version)
+		debug(url,2)
+		Reporter(url).start()
+		
+		
 		
 def setPatrolReport(cmdr,system):
 	debug("Patrol Report Disabled")
