@@ -24,7 +24,7 @@ this = sys.modules[__name__]
 this.s = None
 this.prep = {}
 this.debuglevel=1
-this.version="4.2.1"
+this.version="4.3.0"
 
 
 
@@ -879,6 +879,7 @@ def journal_entry_wrapper(cmdr, is_beta, system, station, entry, state):
 	  
 	this.ussSelector.journal_entry(cmdr, system, station, entry)
 	faction_kill(cmdr, is_beta, system, station, entry, state)
+	refugee_mission(cmdr, is_beta, system, station, entry, state)
 	statistics(cmdr, is_beta, system, station, entry, state)	  
 	
 	if entry['event'] == 'USSDrop':
@@ -942,6 +943,17 @@ def faction_kill(cmdr, is_beta, system, station, entry, state):
 			url+="&entry.576102634="+quote_plus(entry["AwardingFaction"])
 			url+="&entry.691973931="+quote_plus(entry["VictimFaction"])
 			Reporter(url).start()
+			
+def refugee_mission(cmdr, is_beta, system, station, entry, state):			
+	if entry['event'] == "MissionAccepted" and entry['PassengerType'] == "Refugee":
+		url="https://docs.google.com/forms/d/e/1FAIpQLSckkj7F4EdwGtwBl0uGtHeDloXErdTIdhFDajtnkJTqomqeYA/formResponse?usp=pp_url"
+		url+="&entry.136746653="+quote_plus(cmdr)
+		url+="&entry.1227401710="+quote_plus(system)
+		url+="&entry.245393486="+quote_plus(entry["Faction"])
+		url+="&entry.529899739="+quote_plus(entry["Name"])	
+		url+="&entry.7428048="+str(entry["PassengerCount"])
+		url+="&entry.1730742117="+str(entry["Reward"])
+		Reporter(url).start()
 			
 def statistics(cmdr, is_beta, system, station, entry, state):
 	if entry['event'] == "Statistics":
