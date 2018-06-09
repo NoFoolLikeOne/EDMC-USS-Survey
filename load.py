@@ -24,7 +24,7 @@ this = sys.modules[__name__]
 this.s = None
 this.prep = {}
 this.debuglevel=1
-this.version="4.3.0"
+this.version="4.3.1"
 
 
 
@@ -945,15 +945,17 @@ def faction_kill(cmdr, is_beta, system, station, entry, state):
 			Reporter(url).start()
 			
 def refugee_mission(cmdr, is_beta, system, station, entry, state):			
-	if entry['event'] == "MissionAccepted" and entry['PassengerType'] == "Refugee":
-		url="https://docs.google.com/forms/d/e/1FAIpQLSckkj7F4EdwGtwBl0uGtHeDloXErdTIdhFDajtnkJTqomqeYA/formResponse?usp=pp_url"
-		url+="&entry.136746653="+quote_plus(cmdr)
-		url+="&entry.1227401710="+quote_plus(system)
-		url+="&entry.245393486="+quote_plus(entry["Faction"])
-		url+="&entry.529899739="+quote_plus(entry["Name"])	
-		url+="&entry.7428048="+str(entry["PassengerCount"])
-		url+="&entry.1730742117="+str(entry["Reward"])
-		Reporter(url).start()
+	if entry['event'] == "MissionAccepted": 
+		if entry['Name'] == "Mission_RS_PassengerBulk_name":
+			if entry['PassengerType'] == "Refugee":
+				url="https://docs.google.com/forms/d/e/1FAIpQLSckkj7F4EdwGtwBl0uGtHeDloXErdTIdhFDajtnkJTqomqeYA/formResponse?usp=pp_url"
+				url+="&entry.136746653="+quote_plus(cmdr)
+				url+="&entry.1227401710="+quote_plus(system)
+				url+="&entry.245393486="+quote_plus(entry["Faction"])
+				url+="&entry.529899739="+quote_plus(entry["Name"])	
+				url+="&entry.7428048="+str(entry["PassengerCount"])
+				url+="&entry.1730742117="+str(entry["Reward"])
+				Reporter(url).start()
 			
 def statistics(cmdr, is_beta, system, station, entry, state):
 	if entry['event'] == "Statistics":
