@@ -6,6 +6,7 @@ import Tkinter as tk
 import requests
 import os
 import csv
+import json
 import uuid
 from urllib import quote_plus
 from  math import sqrt,pow,trunc
@@ -13,7 +14,7 @@ from ttkHyperlinkLabel import HyperlinkLabel
 import datetime
 import webbrowser
 import threading
-
+from winsound import *
 
 from config import applongname, appversion
 import myNotebook as nb
@@ -24,7 +25,7 @@ this = sys.modules[__name__]
 this.s = None
 this.prep = {}
 this.debuglevel=1
-this.version="4.3.1"
+this.version="4.3.2"
 
 
 
@@ -64,6 +65,18 @@ class Reporter(threading.Thread):
             debug(self.payload,2)
         except:
             print("["+myPlugin+"] Issue posting message " + str(sys.exc_info()[0]))
+			
+class Player(threading.Thread):
+    def __init__(self, payload):
+        threading.Thread.__init__(self)
+        self.payload = payload
+
+    def run(self):
+        try:
+			soundfile = os.path.dirname(this.__file__)+'\\'+self.payload
+			PlaySound(soundfile,SND_FILENAME)
+        except:
+            print("["+myPlugin+"] Issue playing sound " + str(sys.exc_info()[0]))			
 
 class ussSelect:
 
@@ -435,12 +448,21 @@ class HyperdictionDetector:
 		self.station = station
 		self.timestamp = entry["timestamp"].replace("T"," ").replace("-","/").replace("Z","")
 		self.cmdr=cmdr
+		self.startevent=entry
+		
+	def DebugInfo(self,cmdr, system, entry):
+		url="https://docs.google.com/forms/d/e/1FAIpQLSeLsjL0M7mJy89y6AOH7eo5kSoVZhR_hb3zAmF_C4tsvKpvKQ/formResponse?usp=pp_url"
+		url+="&entry.1892927060="+quote_plus(cmdr);
+		url+="&entry.1740782271="+quote_plus(system);
+		url+="&entry.531806815="+quote_plus(json.dumps(self.startevent));
+		url+="&entry.495111246="+quote_plus(json.dumps(entry));
+		Reporter(url).start()
 		
 
 	def FSDJump(self,cmdr, system, station, entry):
 		self.end_jump = entry["StarSystem"]
 		self.cmdr=cmdr
-		if self.target_jump != self.end_jump:
+		if self.target_jump != self.end_jump and system == self.start_jump:
 			debug("Hyperdiction Detected",2)	
 			startx,starty,startz=edsmGetSystem(self.start_jump) 
 			endx,endy,endz=edsmGetSystem(self.target_jump) 
@@ -451,12 +473,14 @@ class HyperdictionDetector:
 			#print url
 			Reporter(url).start()
 			setHyperReport(self.start_jump,self.target_jump)
+			self.DebugInfo(cmdr, system,entry)
 
 class news:
 	def __init__(self,frame):
 		debug("Initiating News")
 		self.feed_url="https://docs.google.com/spreadsheets/d/e/2PACX-1vSy9ij93j2qbwD-1_bXlI5IfO4EUD4ozNX2GJ2Do5tZNl-udWIqBHxYbtmcMRwvF6favzay3zY2LpH5/pub?gid=1876886084&single=true&output=tsv"
 		self.version_url="https://docs.google.com/spreadsheets/d/e/2PACX-1vSy9ij93j2qbwD-1_bXlI5IfO4EUD4ozNX2GJ2Do5tZNl-udWIqBHxYbtmcMRwvF6favzay3zY2LpH5/pub?gid=0&single=true&output=tsv"
+		self.nag_count=0
 		this.description = tk.Message(frame,width=200)
 		this.news_label = tk.Label(frame, text=  "Report:")
 		this.newsitem= HyperlinkLabel(frame, compound=tk.LEFT, popup_copy = True)
@@ -469,7 +493,15 @@ class news:
 		self.getPost()
 		
 	
-			
+	def nag(self):
+		debug("Nagging")
+		self.nag_count=self.nag_count+1
+		if self.nag_count == 3:
+			Player("nag1.wav").start()
+		if self.nag_count == 10:
+			Player("nag2.wav").start()
+
+		
 		
 	def getPost(self):
 		
@@ -483,6 +515,8 @@ class news:
 				this.newsitem["url"] = rec[2]
 				this.newsitem.grid()	
 				this.news_label.grid()
+				debug("Nagging in getPost")
+				self.nag()
 				getnews=False
 				
 		
@@ -862,6 +896,7 @@ def getDistanceSol(x1,y1,z1):
 	return round(sqrt(pow(float(0)-float(x1),2)+pow(float(0)-float(y1),2)+pow(float(0)-float(z1),2)),2)			
 		
 def journal_entry(cmdr, is_beta, system, station, entry, state):
+	statistics(cmdr, is_beta, system, station, entry, state)	  
 	if config.getint("Anonymous") >0:
 		commander="Anonymous"
 	else:
@@ -880,7 +915,7 @@ def journal_entry_wrapper(cmdr, is_beta, system, station, entry, state):
 	this.ussSelector.journal_entry(cmdr, system, station, entry)
 	faction_kill(cmdr, is_beta, system, station, entry, state)
 	refugee_mission(cmdr, is_beta, system, station, entry, state)
-	statistics(cmdr, is_beta, system, station, entry, state)	  
+	
 	
 	if entry['event'] == 'USSDrop':
 		this.ussInator.ussDrop(cmdr, system, station, entry)
@@ -889,6 +924,7 @@ def journal_entry_wrapper(cmdr, is_beta, system, station, entry, state):
 	if entry['event'] == 'SupercruiseExit':
 		# we need to check if we dropped from a uss
 		this.ussInator.SupercruiseExit(cmdr, system, station, entry)		
+		this.newsFeed.getPost()  
 	
 	if entry['event'] == 'StartJump':	
 		this.newsFeed.getPost()  
@@ -900,7 +936,6 @@ def journal_entry_wrapper(cmdr, is_beta, system, station, entry, state):
 		
 		this.hyperdictionInator.StartJump(cmdr, system, station, entry)
 						
-		#patrol_start_jump(cmdr,this.arrived,entry["timestamp"],system,entry["StarSystem"])
 				
 	
 	if entry['event'] == 'FSDJump':
@@ -946,7 +981,7 @@ def faction_kill(cmdr, is_beta, system, station, entry, state):
 			
 def refugee_mission(cmdr, is_beta, system, station, entry, state):			
 	if entry['event'] == "MissionAccepted": 
-		if entry['Name'] == "Mission_RS_PassengerBulk_name":
+		if entry['Name'] == "Mission_RS_PassengerBulk_name" or entry['Name'] == "Mission_RS_PassengerBulk":
 			if entry['PassengerType'] == "Refugee":
 				url="https://docs.google.com/forms/d/e/1FAIpQLSckkj7F4EdwGtwBl0uGtHeDloXErdTIdhFDajtnkJTqomqeYA/formResponse?usp=pp_url"
 				url+="&entry.136746653="+quote_plus(cmdr)
