@@ -24,8 +24,8 @@ import csv
 this = sys.modules[__name__]
 this.s = None
 this.prep = {}
-this.debuglevel=1
-this.version="4.3.2"
+#this.debuglevel=2
+this.version="4.4.0"
 
 
 
@@ -37,10 +37,24 @@ def plugin_prefs(parent, cmdr, is_beta):
 	Return a TK Frame for adding to the EDMC settings dialog.
 	"""
 	this.anon = tk.IntVar(value=config.getint("Anonymous"))	# Retrieve saved value from config
+	this.hide_patrol = tk.IntVar(value=config.getint("hide_patrol"))	# Retrieve saved value from config
+	this.hide_super = tk.IntVar(value=config.getint("hide_super"))	# Retrieve saved value from config
+	this.hide_nhss = tk.IntVar(value=config.getint("hide_nhss"))	# Retrieve saved value from config
+	this.uss_debug = tk.IntVar(value=config.getint("uss_debug"))
+	
 	frame = nb.Frame(parent)
+	frame.columnconfigure(3, weight=1)
+	
 	#nb.Label(frame, text="Hello").grid()
 	#nb.Label(frame, text="Make me anonymous").grid()
-	nb.Checkbutton(frame, text="I want to be anonymous", variable=this.anon).grid()
+	#this.canonnReportDesc = tk.Message(this.frame,width=200)
+	
+	nb.Checkbutton(frame, text="I want to be anonymous", variable=this.anon).grid(row = 1, column = 0,sticky=tk.W)
+	nb.Checkbutton(frame, text="Hide Canonn Patrol", variable=this.hide_patrol).grid(row = 2, column = 0,columnspan=1,sticky=tk.W)
+	nb.Checkbutton(frame, text="Hide Supercruise Survey", variable=this.hide_super).grid(row = 2, column = 2,columnspan=1,sticky=tk.W)
+	nb.Checkbutton(frame, text="Hide Non Human Survey", variable=this.hide_nhss).grid(row = 2, column = 3,columnspan=1,sticky=tk.W)
+	nb.Checkbutton(frame, text="Turn on debugging", variable=this.uss_debug).grid(row = 10, column = 0,columnspan=3,sticky=tk.SW)
+		
 	
 	return frame
    
@@ -49,10 +63,19 @@ def prefs_changed(cmdr, is_beta):
 	Save settings.
 	"""
 	config.set('Anonymous', this.anon.get())	   
+	config.set('hide_patrol', this.hide_patrol.get())	   
+	config.set('hide_super', this.hide_super.get())	   
+	config.set('hide_nhss', this.hide_nhss.get())	   
+	config.set('uss_debug', this.uss_debug.get())	   
+	
+	this.patrolZone.showPatrol(cmdr)
+	
 	if config.getint("Anonymous") >0:
 		debug("I want to be anonymous")		
 	else:
 		debug("I want to be famous")		
+		
+	this.patrolZone.showPatrol(cmdr)
 
 class Reporter(threading.Thread):
     def __init__(self, payload):
@@ -134,6 +157,15 @@ class ussSelect:
 		transmit.grid(row = 0, column = 2)
 		self.container.grid_remove()
 		
+	def uivisible(self):
+		if config.getint("hide_super") >0:
+			debug("Hide Supercruise,2")		
+			return False
+		else:
+			debug("Show Supercruise,2")		
+			return True
+		
+		
 	def transmit(self):
 		#debug(self.typeVar.get())
 		#debug(self.threatVar.get())
@@ -156,7 +188,8 @@ class ussSelect:
 		url+="&entry.1328849583="+str(self.deltaSeconds)
 		
 		return url
-		
+	
+			
 	def changeType(self,*args):
 		sel = self.typeVar.get();
 		if sel == "Ceremonial Comms":
@@ -186,7 +219,11 @@ class ussSelect:
 		self.system=system
 		self.cmdr=cmdr
 		if entry['event'] == "SupercruiseEntry" or entry['event'] == "FSDJump":
-			self.container.grid()
+			if self.uivisible():
+				self.container.grid()
+				debug("Visible is true")
+			else:
+				debug("Visible is False")
 			self.cruiseTime=datetime.datetime.now()
 			ts=entry["timestamp"]
 			year=ts[0:4]
@@ -294,6 +331,14 @@ class CanonnReport:
 			return report+" "+str(quantity)+" "+thing+"s"
 		return report
 		
+	def uivisible(self):
+		if config.getint("hide_nhss") >0:
+			debug("Hide NHSS")		
+			return False
+		else:
+			debug("Show NHSS,2")		
+			return True		
+		
 	def hide(self):
 		this.BASILISK.grid_remove()
 		this.CYCLOPS.grid_remove()
@@ -313,7 +358,7 @@ class CanonnReport:
 		self.hide()
 		
 	def ussDrop(self,cmdr, system, station, entry):
-		if entry['USSType'] == "$USS_Type_NonHuman;":
+		if entry['USSType'] == "$USS_Type_NonHuman;" and self.uivisible(): 
 			self.uss_type=entry['USSType']
 			self.threat=str(entry['USSThreat'])		
 			self.system=system
@@ -542,6 +587,8 @@ class Patrol:
 		self.arrival=today.strftime("%Y/%m/%d %H:%M:%S")
 		debug(self.arrival,2)
 		
+
+		
 	def Location(self,cmdr, system, station, entry):		
 		self.cmdr=cmdr
 		debug("Setting Location",2)
@@ -631,10 +678,9 @@ def dateDiffMinutes(s1,s2):
 	return (d2-d1).days	*24 *60
 		
 def debug(value,level=None):
-	if level is None:
-		level = 1
-	if this.debuglevel >= level:
+	if config.getint("uss_debug") >0:
 		print "["+myPlugin+"] "+str(value)
+		
 
 
 def getDistance(x1,y1,z1,x2,y2,z2):
@@ -896,7 +942,9 @@ def getDistanceSol(x1,y1,z1):
 	return round(sqrt(pow(float(0)-float(x1),2)+pow(float(0)-float(y1),2)+pow(float(0)-float(z1),2)),2)			
 		
 def journal_entry(cmdr, is_beta, system, station, entry, state):
-	statistics(cmdr, is_beta, system, station, entry, state)	  
+
+	startup_stats(cmdr)
+	
 	if config.getint("Anonymous") >0:
 		commander="Anonymous"
 	else:
@@ -910,7 +958,7 @@ def journal_entry_wrapper(cmdr, is_beta, system, station, entry, state):
 	this.guid = uuid.uuid1()
 	this.cmdr=cmdr
 	  
-	startup_stats(cmdr)
+	statistics(cmdr, is_beta, system, station, entry, state)	  
 	  
 	this.ussSelector.journal_entry(cmdr, system, station, entry)
 	faction_kill(cmdr, is_beta, system, station, entry, state)
@@ -1034,7 +1082,13 @@ def setHyperReport(sysfrom,systo):
 	this.report_label.grid()
 	this.report.grid()			
 	
-		
+def patrolVisible():
+	if config.getint("hide_patrol") >0:
+		debug("Hide Patrol,2")		
+		return False
+	else:
+		debug("Show Patrol,2")		
+		return True				
 			
 def setPatrol(nearest,distance,instructions):
 
@@ -1045,17 +1099,25 @@ def setPatrol(nearest,distance,instructions):
 		this.clipboard.grid_remove()
 		this.description.grid_remove()
 	else:
-		this.status['text'] = nearest + " (" + str(distance) +"ly)"
-		this.status['url'] = 'https://www.edsm.net/show-system?systemName=%s' % quote_plus(nearest)
-		
-		this.description["text"] = instructions
-		this.label.grid()
-		this.status.grid()
-		this.clipboard.grid()
-		this.cross.grid()
-		this.description["width"]=100
-		this.description["width"]=this.parent.winfo_width()-10
-		this.description.grid()
+		if patrolVisible():
+			this.status['text'] = nearest + " (" + str(distance) +"ly)"
+			this.status['url'] = 'https://www.edsm.net/show-system?systemName=%s' % quote_plus(nearest)
+			
+			this.description["text"] = instructions
+			this.label.grid()
+			this.status.grid()
+			this.clipboard.grid()
+			this.cross.grid()
+			this.description["width"]=100
+			this.description["width"]=this.parent.winfo_width()-10
+			this.description.grid()
+			
+	if not patrolVisible():
+		this.cross.grid_remove()
+		this.label.grid_remove()
+		this.status.grid_remove()
+		this.clipboard.grid_remove()
+		this.description.grid_remove()
 			
 def cmdr_data(data):
 	this.patrolZone.cmdrData(data)
