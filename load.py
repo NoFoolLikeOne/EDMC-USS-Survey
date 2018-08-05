@@ -14,6 +14,7 @@ from ttkHyperlinkLabel import HyperlinkLabel
 import datetime
 import webbrowser
 import threading
+from excludevents import excluded_events
 from winsound import *
 
 from config import applongname, appversion
@@ -88,6 +89,36 @@ class Reporter(threading.Thread):
             debug(self.payload,2)
         except:
             print("["+myPlugin+"] Issue posting message " + str(sys.exc_info()[0]))
+			
+		#CanonJournal(cmdr, system, station, entry).start()			
+class CanonnJournal(threading.Thread):
+	def __init__(self,cmdr, system, station, entry):
+		threading.Thread.__init__(self)
+		self.system = system
+		self.cmdr = cmdr
+		self.station = station
+		self.entry = entry.copy()
+
+		
+	def run(self):
+		try:
+			payload={"systemname": self.system,"cmdrName": self.cmdr  }
+			payload["jsonData"]=self.entry
+			
+			included_event=(self.entry["event"] not in excluded_events)
+			#Music is in the exclusion list but we want unknown music
+			unknown_music=(self.entry["event"] == "Music" and "UNKNOWN" in str(self.entry).upper())
+			
+			if included_event or unknown_music:
+						
+				print json.dumps(payload)
+				requests.post("https://api.canonn.tech:2053/journaldata",data=json.dumps(payload),headers={"content-type":"application/json"})	
+				
+				#requests.post('https://api.canonn.tech:2053/journaldata?systemName=Deciat&cmdrName=LCU No Fool Like One&jsonData={"timestamp": "2018-07-11T18:46:54Z", "Message": "This is new", "event": "SendText", "To": "local"}',headers={"content-type":"application/json"})
+				debug(payload,2)
+
+		except:
+			print("["+myPlugin+"] Issue posting CanonnJournal " + str(sys.exc_info()[0]))			
 			
 class Player(threading.Thread):
     def __init__(self, payload):
@@ -947,6 +978,10 @@ def journal_entry(cmdr, is_beta, system, station, entry, state):
 	
 	if config.getint("Anonymous") >0:
 		commander="Anonymous"
+		if cmdr in str(entry):
+			#entry["cmdrName"]="Anonymous"
+			s = str(entry).replace(cmdr,"Anonymous")
+			entry=eval(s)
 	else:
 		commander=cmdr
 		
@@ -954,6 +989,8 @@ def journal_entry(cmdr, is_beta, system, station, entry, state):
 	
 # Detect journal events
 def journal_entry_wrapper(cmdr, is_beta, system, station, entry, state):
+
+	CanonnJournal(cmdr, system, station, entry).start()			
 
 	this.guid = uuid.uuid1()
 	this.cmdr=cmdr

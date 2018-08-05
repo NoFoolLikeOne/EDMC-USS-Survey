@@ -1,0 +1,123 @@
+{ "timestamp":"2016-06-10T14:32:03Z", "event":"LoadGame", "Commander":"HRC1", "Ship":"SideWinder", “ShipID”:1,
+{ "timestamp":"2016-06-10T14:32:03Z", "event":"Rank", "Combat":0, "Trade":0, "Explore":1, "Empire":0, "Federation":0, "CQC":0 }
+{ "timestamp":"2016-06-10T14:32:03Z", "event":"Progress", "Combat":0, "Trade":0, "Explore":73, "Empire":0, "Federation":0, "CQC":0
+{ "timestamp":"2016-06-10T14:32:15Z", "event":"Location", "StarSystem":"Asellus Primus", "StarPos":[-23.938,40.875,-1.344] }
+{ "timestamp":"2016-06-10T14:32:16Z", "event":"Docked", "StationName":"Beagle 2 Landing", "StationType":"Coriolis" }
+{ "timestamp":"2016-06-10T14:32:38Z", "event":"RefuelAll", "Cost":12, "Amount":0.234493 }
+{ "timestamp":"2016-06-10T14:34:25Z", "event":"Undocked", "StationName":"Beagle 2 Landing", "StationType":"Coriolis" }
+{ "timestamp":"2016-06-10T14:35:00Z", "event":"FSDJump", "StarSystem":"HIP 78085", "StarPos":[120.250,40.219,268.594],
+{ "timestamp":"2016-06-10T14:36:10Z", "event":"FSDJump", "StarSystem":"Praea Euq NW-W b1-3",
+{ "timestamp":"2016-06-10T14:36:42Z", "event":"Scan", "BodyName":"Praea Euq NW-W b1-3", "StarType":"M" }
+{ "timestamp":"2016-06-10T14:38:50Z", "event":"Scan", "BodyName":"Praea Euq NW-W b1-3 3", "Description":"Icy body with neon
+{ "timestamp":"2016-06-10T14:39:08Z", "event":"Scan", "BodyName":"Praea Euq NW-W b1-3 3 a", "Description":"Tidally locked Icy
+{ "timestamp":"2016-06-10T14:41:03Z", "event":"FSDJump", "StarSystem":"Asellus Primus", "StarPos":[-23.938,40.875,-1.344],
+{ "timestamp":"2016-06-10T14:41:26Z", "event":"SupercruiseExit", "StarSystem":"Asellus Primus", "Body":"Beagle 2 Landing" }
+{ "timestamp":"2016-06-10T14:41:29Z", "event":"Docked", "StationName":"Beagle 2 Landing", "StationType":"Coriolis" }
+{ "timestamp":"2016-06-10T14:41:58Z", "event":"SellExplorationData", "Systems":[ "HIP 78085", "Praea Euq NW-W b1-3" ],
+{ "timestamp":"2016-07-22T10:20:01Z", "event":"fileheader", "part":1, "language":"French/FR",
+The object has a "timestamp" value with the time in ISO 8601 format, an "event":"
+{ "timestamp":"2017-02-10T14:25:51Z", "event":"Cargo", "Inventory":[ { "Name":"syntheticmeat",
+"event":"ClearSavedGame", "Name":"HRC1" }
+{ "timestamp":"2017-02-10T14:25:51Z", "event":"Materials", "Raw":[ { "Name":"chromium",
+{ "timestamp":"2017-10-02T10:37:58Z", "event":"Missions", "Active":[ { "MissionID":65380900,
+"event":"NewCommander", "Name":"HRC1",
+{ "timestamp":"2017-02-10T14:25:51Z", "event":"LoadGame", "Commander":"HRC-2",
+{ "timestamp":"2018-01-31T10:53:04Z", "event":"Powerplay", "Power":"Edmund Mahon", "Rank":0,
+"event":"Progress", "Combat":77, "Trade":9, "Explore":93,
+"event":"Rank", "Combat":2, "Trade":2, "Explore":5,
+{ "timestamp":"2017-09-25T15:18:31Z", "event":"Statistics", "Bank_Account":{ "Current_Wealth":148827050,
+{ "timestamp":"2017-09-27T15:21:05Z", "event":"ApproachBody", "StarSystem":"Eranin",
+{ "timestamp":"2018-03-07T12:22:25Z", "event":"Docked", "StationName":"Jenner Orbital", "StationType":"Outpost",
+{ "timestamp":"2017-02-27T15:37:47Z", "event":"FSDJump", "StarSystem":"HR 3316", "StarPos":[100.719,19.813,-51.125],
+{ "timestamp":"2016-07-22T10:53:19Z", "event":"Liftoff", "Latitude":63.468872,
+"event":"SupercruiseExit", "StarSystem":"Yuetu",
+{ "timestamp":"2016-07-22T10:38:46Z", "event":"Touchdown", "Latitude":63.468872,
+"event":"Undocked", "StationName":"Long Sight Base" }
+"event":"Bounty", "Rewards": [ {"Faction":"Federation",
+"event":"Died",
+"event":"Died", "Killers":[ { "Name":"Cmdr HRC1",
+"event":"EscapeInterdiction", "Interdictor":"Hrc1",
+"event":"FactionKillBond",  "Reward": 500,
+"event":"interdicted", "Submitted":false,
+"event":"interdiction", "Success":true, "Interdicted":"Fred
+{ "timestamp":"2016-07-25T14:45:48Z", "event":"ShieldState", "ShieldsUp":false }
+{ "timestamp":"2016-07-25T14:46:36Z", "event":"ShieldState", "ShieldsUp":true }
+{ "timestamp":"2018-02-02T10:43:05Z", "event":"Scan", "ScanType":"NavBeaconDetail",
+"event":"MaterialCollected", "Category":"Raw",
+"event":"MaterialCollected", "Category":"Encoded",
+"event":"MaterialDiscarded", "Category":"Raw",
+"event":"MaterialDiscovered", "Category":"Manufactured",
+"event":"BuyExplorationData", "System":"Styx", "Cost":352
+"event":"SellExplorationData", "Systems":[ "HIP 78085",
+{ "timestamp":"2018-01-17T09:48:26Z", "event":"Screenshot",
+"event":"BuyTradeData", "System":"i Bootis", "Cost":100 }
+"event":"CollectCargo", "Type":"agriculturalmedicines",
+"event":"EjectCargo", "Type":"tobacco", "Count":1,
+{ "timestamp":"2016-09-21T14:18:23Z", "event":"EjectCargo", "Type":"alliancelegaslativerecords",
+"event":"MarketBuy", "Type":"foodcartridges", "Count":10,
+"event":"MarketSell", "Type":"agriculturalmedicines",
+{ "event":"MarketSell", "Type":"mineraloil", "Count":9, "SellPrice":72, "TotalSale":648,
+"event":"MiningRefined", "Type:"Gold" }
+"event":"BuyAmmo", "Cost":80 }
+"event":"BuyDrones", "Type":"Drones", "Count":2,
+{ "timestamp":"2018-03-07T15:47:03Z", "event":"CargoDepot", "MissionID":65394170,
+{ "timestamp":"2017-08-14T13:20:28Z", "event":"CommunityGoal", "CurrentGoals":[ { "CGID":726,
+{ "timestamp":"2016-08-09T08:45:31Z", "event":"CrewAssign", "Name":"Dannie Koller",
+{ "timestamp":"2016-08-09T08:46:11Z", "event":"CrewFire", "Name":"Whitney Pruitt-Munoz" }
+{ "timestamp":"2016-08-09T08:46:29Z", "event":"CrewHire", "Name":"Margaret Parrish",
+{ "timestamp":"2017-05-24T10:41:51Z", "event":"EngineerContribution", "Engineer":"Elvira
+"event":"EngineerProgress", "Progress":"Unlocked",
+"event":"EngineerProgress", "Engineer":"Elvira Martuuk",
+{ "timestamp":"2017-10-05T10:11:38Z", "event":"Outfitting", "MarketID":128678535, "StationName":"Black
+{ "timestamp":"2017-10-05T10:10:34Z", "event":"Market", "MarketID":128678535, "StationName":"Black
+{ "timestamp":"2018-02-21T15:23:49Z", "event":"MaterialTrade", "MarketID":3221397760,
+"event":"MissionAbandoned",
+{ "timestamp":"2018-02-28T12:06:37Z", "event":"MissionAccepted", "Faction":"Official i Bootis
+{ "timestamp":"2018-01-30T10:00:20Z", "event":"MissionCompleted", "Faction":"Farack
+{ "timestamp": "2017-08-01T09:04:07Z", "event": "MissionRedirected", "MissionID": 65367315,
+"event":"ModuleBuy", "Slot":"MediumHardpoint2",
+"event":"ModuleSell", "Slot":"Slot06_Size2",
+{ "timestamp":"2018-01-31T10:55:15Z", "event":"ModuleStore", "MarketID":128676487,
+"event":"ModuleSwap", "FromSlot":"MediumHardpoint1",
+"event":"ModuleSwap", "FromSlot":"SmallHardpoint2",
+{ "timestamp":"2017-10-05T10:11:38Z", "event":"Outfitting", "MarketID":128678535, "StationName":"Black
+{ "timestamp":"2017-10-05T10:11:38Z", "event":"Outfitting", "MarketID":128678535, "StationName":"Black
+{ "timestamp":"2018-03-19T10:25:10Z", "event":"PayBounties", "Amount":400,
+{ "timestamp":"2018-03-19T10:24:21Z", "event":"PayFines", "Amount":250, "AllFines":false,
+"event":"RedeemVoucher", "Type":"bounty", Factions: [ {
+"event":"RefuelAll", "Cost":317, "Amount":6.322901 }
+"event":"SellDrones", "Type":"Drones", "Count":1,
+{ "timestamp":"2017-07-20T08:56:39Z", "event":"SellShipOnRebuy", "ShipType":"Dolphin",
+{ "timestamp":"2017-01-24T10:42:38Z", "event":"SetUserShipName", "Ship":"cobramkiii",
+{ "timestamp":"2017-10-04T10:01:38Z", "event":"Shipyard", "MarketID: 128122104,
+{ "timestamp":"2017-10-04T10:01:38Z", "event":"Shipyard", "MarketID: 128122104, "StationName":"Seven
+{ "timestamp":"2016-07-21T14:36:38Z", "event":"ShipyardBuy", "ShipType":"hauler",
+{ "timestamp":"2016-07-21T14:36:38Z", "event":"ShipyardNew", "ShipType":"hauler",
+{ "timestamp":"2016-07-21T15:12:19Z", "event":"ShipyardSell", "ShipType":"Adder", "SellShipID":6,
+{ "timestamp":"2016-07-21T15:19:49Z", "event":"ShipyardTransfer", "ShipType":"SideWinder",
+{ "timestamp":"2016-07-21T14:36:06Z", "event":"ShipyardSwap", "ShipType":"sidewinder",
+{ "timestamp":"2018-01-31T10:55:16Z", "event":"StoredModules", "MarketID":128676487, "StationName":"Farseer Inc",
+{ "timestamp":"2017-10-04T10:07:21Z", "event":"StoredShips", "StationName":"Jameson
+{ "timestamp":"2018-03-02T11:28:44Z", "event":"TechnologyBroker", "BrokerType":"Human",
+"event":"PowerplayCollect", "Power":"Li Yong-Rui",
+"event":"PowerplayDefect", "FromPower":"Zachary
+"event":"PowerplayDeliver", "Power":"Li Yong-Rui",
+"event":"PowerplayJoin", "Power":"Zachary Hudson" }
+"event":"PowerplayLeave", "Power":"Li Yong-Rui" }
+{ "timestamp":"2017-08-14T15:41:50Z", "event":"AfmuRepairs",
+"event":"CockpitBreached" }
+"event":"CommitCrime", "CrimeType":"assault",
+"event":"CommitCrime", "CrimeType":"fireInNoFireZone",
+{ "timestamp":"2017-02-22T14:56:54Z", "event":"CrewMemberRoleChange", "Crew":"HRC1",
+"event":"DockFighter" }
+"event":"FuelScoop", "Scooped":0.498700,
+"event":"LaunchFighter", "Loadout":"starter",
+{ "timestamp":"2018-01-10T14:35:08Z", "event":"ModuleInfo", "Modules":[
+"event":"Promotion", "Explore":2 }
+"event":"RebootRepair", "Modules":[ "MainEngines",
+{ "timestamp":"2017-02-13T12:30:09Z", "event":"Scanned", "ScanType":"Cargo" }
+"event":"SendText", "To":"HRC-2", "Message":"zoom" }
+"event":"Synthesis", "Name":"Repair Basic", "Materials":[
+"event":"USSDrop", "USSType":"Disrupted wake echoes",
+"event":"VehicleSwitch", "To":"Fighter" }
+"event":"VehicleSwitch", "To":"Mothership" }
