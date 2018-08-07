@@ -27,7 +27,7 @@ this = sys.modules[__name__]
 this.s = None
 this.prep = {}
 #this.debuglevel=2
-this.version="4.4.0"
+this.version="4.4.1"
 
 
 
@@ -477,7 +477,11 @@ class USSDetector:
 			#print url
 			Reporter(url).start()
 			
-			
+def v2n(v):
+	major,minor,point=v.split('.')
+	debug(int("%(major)03d%(minor)03d%(point)03d" % {"major": int(major), "minor": int(minor), "point": int(point)}))
+	r = int("%(major)03d%(minor)03d%(point)03d" % {"major": int(major), "minor": int(minor), "point": int(point)})
+	return r			
 				
 class HyperdictionDetector:		
 	'Class for Detecting Hyperdictions'
@@ -548,7 +552,7 @@ class news:
 		if self.nag_count == 10:
 			Player("nag2.wav").start()
 
-		
+
 		
 	def getPost(self):
 		
@@ -557,7 +561,9 @@ class news:
 		getnews=True
 		for line in versions.content.split("\r\n"):
 			rec=line.split("\t")
-			if rec[0] == 'EDMC-USS-Survey' and rec[1] != this.version:
+			if rec[0] == 'EDMC-USS-Survey' and v2n(rec[1]) > v2n(this.version):
+				debug(v2n(rec[1]))
+				debug(v2n(this.version))
 				this.newsitem["text"] = "Please upgrade USS Survey to release; "+rec[1]
 				this.newsitem["url"] = rec[2]
 				this.newsitem.grid()	
