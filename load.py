@@ -15,6 +15,8 @@ import datetime
 import webbrowser
 import threading
 from winsound import *
+import ctypes
+
 
 from config import applongname, appversion
 import myNotebook as nb
@@ -96,7 +98,7 @@ class Player(threading.Thread):
 
     def run(self):
         try:
-			soundfile = os.path.dirname(this.__file__)+'\\'+self.payload
+			soundfile = plugin_dir()+'\\'+self.payload
 			PlaySound(soundfile,SND_FILENAME)
         except:
             print("["+myPlugin+"] Issue playing sound " + str(sys.exc_info()[0]))			
@@ -120,7 +122,7 @@ class ussSelect:
 			"Weapons Fire"
 		]
 		
-		self._IMG_VISITED = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'/tick3.gif')
+		self._IMG_VISITED = tk.PhotoImage(file = plugin_dir()+'\\tick3.gif')
 		
 		listbar = tk.Frame(frame)
 		self.container=listbar
@@ -759,25 +761,31 @@ def merge_visited():
 	#debug(this.patrol)
 	return list	
 	
+def plugin_dir():
+	buf = ctypes.create_unicode_buffer(1024)
+	ctypes.windll.kernel32.GetEnvironmentVariableW(u"USERPROFILE", buf, 1024)
+	home_dir = buf.value
+	plugin_base = os.path.basename(os.path.dirname(__file__))
+	return home_dir+'\\AppData\\Local\\EDMarketConnector\\plugins\\'+plugin_base
 		
 def plugin_start():
 	"""
 	Load Template plugin into EDMC
 	"""
+
 	
-	#Load Images we intend to use
-	this._IMG_VISITED = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'/tick3.gif')
-	this._IMG_IGNORE = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'/cross.gif')
-	this._IMG_CLIPBOARD = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'/clipboard.gif')
-	this._IMG_BASILISK = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'\Icons\LCU_Basilisk_25px.gif')
-	this._IMG_CYCLOPS = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'\Icons\LCU_Cyclops_25px.gif')
-	this._IMG_MEDUSA = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'\Icons\LCU_Medusa_25px.gif')
-	this._IMG_PROBE = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'\Icons\LCU_Probe_25px.gif')
-	this._IMG_SCOUT = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'\Icons\LCU_Scout_25px_1.gif')
-	this._IMG_SENSOR = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'\Icons\LCU_Sensor_25px.gif')
-	this._IMG_SPACE = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'\Icons\LCU_Space_25px.gif')
-	this._IMG_TRANSMIT = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'\Icons\\transmit.gif')
-	this._IMG_COBRA = tk.PhotoImage(file = os.path.realpath(os.path.dirname(os.path.realpath(__file__)))+'\Icons\\cobra.gif')	
+	this._IMG_VISITED = tk.PhotoImage(file = plugin_dir()+'\\tick3.gif')
+	this._IMG_IGNORE = tk.PhotoImage(file = plugin_dir()+'\\cross.gif')
+	this._IMG_CLIPBOARD = tk.PhotoImage(file = plugin_dir()+'\\clipboard.gif')
+	this._IMG_BASILISK = tk.PhotoImage(file = plugin_dir()+'\\Icons\\LCU_Basilisk_25px.gif')
+	this._IMG_CYCLOPS = tk.PhotoImage(file = plugin_dir()+'\\Icons\\LCU_Cyclops_25px.gif')
+	this._IMG_MEDUSA = tk.PhotoImage(file = plugin_dir()+'\\Icons\\LCU_Medusa_25px.gif')
+	this._IMG_PROBE = tk.PhotoImage(file = plugin_dir()+'\\Icons\\LCU_Probe_25px.gif')
+	this._IMG_SCOUT = tk.PhotoImage(file = plugin_dir()+'\\Icons\\LCU_Scout_25px_1.gif')
+	this._IMG_SENSOR = tk.PhotoImage(file = plugin_dir()+'\Icons\\LCU_Sensor_25px.gif')
+	this._IMG_SPACE = tk.PhotoImage(file = plugin_dir()+'\\Icons\\LCU_Space_25px.gif')
+	this._IMG_TRANSMIT = tk.PhotoImage(file = plugin_dir()+'\\Icons\\transmit.gif')
+	this._IMG_COBRA = tk.PhotoImage(file = plugin_dir()+'\\Icons\\cobra.gif')	
 	
 	this.patrol=get_patrol()
 	merge_visited()
