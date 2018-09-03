@@ -27,7 +27,7 @@ this = sys.modules[__name__]
 this.s = None
 this.prep = {}
 #this.debuglevel=2
-this.version="4.4.1"
+this.version="4.4.2"
 
 
 
@@ -534,7 +534,12 @@ class news:
 		self.nag_count=0
 		this.description = tk.Message(frame,width=200)
 		this.news_label = tk.Label(frame, text=  "Report:")
-		this.newsitem= HyperlinkLabel(frame, compound=tk.LEFT, popup_copy = True)
+		this.newsitem= HyperlinkLabel(frame, compound=tk.LEFT, popup_copy = True,wraplength=200)
+		
+		this.newsitem["width"]=100
+		this.newsitem["width"]=this.parent.winfo_width()-10-this.news_label.winfo_width()
+		#this.newsitem["wraplength"]=this.parent.winfo_width()-10-this.news_label.winfo_width()
+		
 		this.news_label.grid(row = 3, column = 0, sticky=tk.W)
 		this.newsitem.grid(row = 3, column = 1, columnspan=3, sticky=tk.W)	
 		this.newsitem["text"]= "News"
@@ -584,7 +589,7 @@ class news:
 			this.newsitem["url"] = rec[1]
 			this.newsitem.grid()	
 			this.news_label.grid()
-		
+			
 			
 class Patrol:
 	def __init__(self,frame):
@@ -1017,6 +1022,7 @@ def journal_entry_wrapper(cmdr, is_beta, system, station, entry, state):
 		this.patrolZone.startUp(cmdr, system, station, entry)		
 		
 
+		
 def matches(d, field, value):
 	return field in d and value == d[field]		
 		
@@ -1058,12 +1064,18 @@ def statistics(cmdr, is_beta, system, station, entry, state):
 	if entry['event'] == "Statistics":
 		url="https://docs.google.com/forms/d/e/1FAIpQLScF_URtGFf1-CyMNr4iuTHkxyxOMWcrZ2ZycrKAiej0eC-hTA/formResponse?usp=pp_url"
 		url+="&entry.613206362="+quote_plus(cmdr)
-		url+="&entry.1085684396="+str(entry['TG_ENCOUNTERS']["TG_ENCOUNTER_WAKES"])
-		url+="&entry.2026302508="+str(entry['TG_ENCOUNTERS']["TG_ENCOUNTER_IMPRINT"])
-		url+="&entry.1600696255="+str(entry['TG_ENCOUNTERS']["TG_ENCOUNTER_TOTAL"])
-		url+="&entry.712826938="+str(entry['TG_ENCOUNTERS']["TG_ENCOUNTER_TOTAL_LAST_TIMESTAMP"])
-		url+="&entry.1384358412="+str(entry['TG_ENCOUNTERS']["TG_SCOUT_COUNT"])
-		url+="&entry.1091946522="+str(entry['TG_ENCOUNTERS']["TG_ENCOUNTER_TOTAL_LAST_SYSTEM"])
+		if "TG_ENCOUNTER_WAKES" in entry['TG_ENCOUNTERS']:
+			url+="&entry.1085684396="+str(entry['TG_ENCOUNTERS']["TG_ENCOUNTER_WAKES"])
+		if "TG_ENCOUNTER_IMPRINT" in entry['TG_ENCOUNTERS']:
+			url+="&entry.2026302508="+str(entry['TG_ENCOUNTERS']["TG_ENCOUNTER_IMPRINT"])
+		if "TG_ENCOUNTER_TOTAL" in entry['TG_ENCOUNTERS']:
+			url+="&entry.1600696255="+str(entry['TG_ENCOUNTERS']["TG_ENCOUNTER_TOTAL"])
+		if "TG_ENCOUNTER_TOTAL_LAST_TIMESTAMP" in entry['TG_ENCOUNTERS']:
+			url+="&entry.712826938="+str(entry['TG_ENCOUNTERS']["TG_ENCOUNTER_TOTAL_LAST_TIMESTAMP"])
+		if "TG_SCOUT_COUNT" in entry['TG_ENCOUNTERS']:
+			url+="&entry.1384358412="+str(entry['TG_ENCOUNTERS']["TG_SCOUT_COUNT"])
+		if "TG_ENCOUNTER_TOTAL_LAST_SYSTEM" in entry['TG_ENCOUNTERS']:
+			url+="&entry.1091946522="+str(entry['TG_ENCOUNTERS']["TG_ENCOUNTER_TOTAL_LAST_SYSTEM"])
 		Reporter(url).start()
 		
 def startup_stats(cmdr):
