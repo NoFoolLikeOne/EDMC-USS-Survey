@@ -108,6 +108,7 @@ class ussSelect:
 	def __init__(self,frame):
 		debug("Initiating USS Select")
 		self.frame=frame
+		self.cruiseTime=datetime.datetime.now()
 		UssTypes = [
 			"Ceremonial Comms",
 			"Combat Aftermath",
@@ -819,8 +820,7 @@ def plugin_app(parent):
 	this.parent = parent
 	#create a new frame as a containier for the status
 	
-	
-	
+		
 	this.frame = tk.Frame(parent)
 	
 	this.ussSelector = ussSelect(this.frame)
