@@ -27,7 +27,7 @@ this = sys.modules[__name__]
 this.s = None
 this.prep = {}
 #this.debuglevel=2
-this.version="4.4.1"
+this.version="5.0.0"
 
 
 
@@ -56,7 +56,17 @@ def plugin_prefs(parent, cmdr, is_beta):
 	nb.Checkbutton(frame, text="Hide Supercruise Survey", variable=this.hide_super).grid(row = 2, column = 2,columnspan=1,sticky=tk.W)
 	nb.Checkbutton(frame, text="Hide Non Human Survey", variable=this.hide_nhss).grid(row = 2, column = 3,columnspan=1,sticky=tk.W)
 	nb.Checkbutton(frame, text="Turn on debugging", variable=this.uss_debug).grid(row = 10, column = 0,columnspan=3,sticky=tk.SW)
-		
+	
+	this.patrolList = tk.StringVar()
+	#this.patrolList.set("PinkWorms BARKMOUNDS BARNACLES HYPERDICTIONS");
+
+	
+	this.patrolBox = tk.Listbox(frame, listvariable=this.patrolList, selectmode=tk.MULTIPLE, width=20, height=10)
+	this.patrolBox.grid(column=0, row=4, columnspan=2)
+	this.patrolBox.insert(tk.END, "Tube Worm Search")
+	this.patrolBox.insert(tk.END, "Bark Mound Confirmation")
+	this.patrolBox.insert(tk.END, "Barnacle Locations")
+	this.patrolBox.insert(tk.END, "Hyperdiction Locations")
 	
 	return frame
    
