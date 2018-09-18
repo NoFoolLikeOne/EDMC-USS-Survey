@@ -29,7 +29,21 @@ this.prep = {}
 #this.debuglevel=2
 this.version="4.4.2"
 
+import re
 
+#for 
+def _callback(matches):
+    id = matches.group(1)
+    try:
+        return unichr(int(id))
+    except:
+        return id
+
+def decode_unicode_references(data):
+    return re.sub("&#(\d+)(;|(?=\s))", _callback, data)
+
+#data = "U.S. Adviser&#8217;s Blunt Memo on Iraq: Time &#8216;to Go Home&#8217;"
+#print decode_unicode_references(data)
 
 # Lets capture the plugin name we want the name - "EDMC -"
 myPlugin = "USS Survey"
@@ -590,7 +604,7 @@ class news:
 			## only want most recent news item
 			line=lines[1]
 			rec=line.split("\t")
-			this.newsitem["text"] = rec[2]
+			this.newsitem["text"] = decode_unicode_references(rec[2])
 			this.newsitem["url"] = rec[1]
 			this.newsitem.grid()	
 			this.news_label.grid()
