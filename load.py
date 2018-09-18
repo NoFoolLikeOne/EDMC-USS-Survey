@@ -16,6 +16,7 @@ import webbrowser
 import threading
 from winsound import *
 import ctypes
+from widgets import SelfWrappingHyperlinkLabel
 
 
 from config import applongname, appversion
@@ -553,10 +554,10 @@ class news:
 		self.nag_count=0
 		this.description = tk.Message(frame,width=200)
 		this.news_label = tk.Label(frame, text=  "Report:")
-		this.newsitem= HyperlinkLabel(frame, compound=tk.LEFT, popup_copy = True,wraplength=200)
+		this.newsitem= SelfWrappingHyperlinkLabel(frame, compound=tk.LEFT, popup_copy = True,wraplength=50)
 		
-		this.newsitem["width"]=100
-		this.newsitem["width"]=this.parent.winfo_width()-10-this.news_label.winfo_width()
+		#this.newsitem["width"]=100
+		#this.newsitem["width"]=this.parent.winfo_width()-10-this.news_label.winfo_width()
 		#this.newsitem["wraplength"]=this.parent.winfo_width()-10-this.news_label.winfo_width()
 		
 		this.news_label.grid(row = 3, column = 0, sticky=tk.W)
