@@ -43,6 +43,7 @@ def plugin_prefs(parent, cmdr, is_beta):
 	this.hide_super = tk.IntVar(value=config.getint("hide_super"))	# Retrieve saved value from config
 	this.hide_nhss = tk.IntVar(value=config.getint("hide_nhss"))	# Retrieve saved value from config
 	this.uss_debug = tk.IntVar(value=config.getint("uss_debug"))
+	this.gnosis_egg = tk.IntVar(value=config.getint("gnosis_egg"))
 	
 	frame = nb.Frame(parent)
 	frame.columnconfigure(3, weight=1)
@@ -56,6 +57,7 @@ def plugin_prefs(parent, cmdr, is_beta):
 	nb.Checkbutton(frame, text="Hide Supercruise Survey", variable=this.hide_super).grid(row = 2, column = 2,columnspan=1,sticky=tk.W)
 	nb.Checkbutton(frame, text="Hide Non Human Survey", variable=this.hide_nhss).grid(row = 2, column = 3,columnspan=1,sticky=tk.W)
 	nb.Checkbutton(frame, text="Turn on debugging", variable=this.uss_debug).grid(row = 10, column = 0,columnspan=3,sticky=tk.SW)
+	nb.Checkbutton(frame, text="Disable Gnosis Easter Egg", variable=this.gnosis_egg).grid(row = 11, column = 0,columnspan=3,sticky=tk.SW)
 		
 	
 	return frame
@@ -69,6 +71,7 @@ def prefs_changed(cmdr, is_beta):
 	config.set('hide_super', this.hide_super.get())	   
 	config.set('hide_nhss', this.hide_nhss.get())	   
 	config.set('uss_debug', this.uss_debug.get())	   
+	config.set('gnosis_egg', this.gnosis_egg.get())	   
 	
 	this.patrolZone.showPatrol(cmdr)
 	
@@ -178,6 +181,7 @@ class ussSelect:
 		# Its not much use recording time since we entered supercruise
 		# So we will restart the timer when we report.
 		self.cruiseTime=datetime.datetime.now()
+		url=self.getUrl()
 		url=self.getUrl()
 		Reporter(url).start()
 		
@@ -971,6 +975,12 @@ def journal_entry(cmdr, is_beta, system, station, entry, state):
 		
 	journal_entry_wrapper(commander, is_beta, system, station, entry, state)	
 	
+def play_gnosis_egg():
+	if config.getint("gnosis_egg") != 1 :
+		Player("gnosis_egg.wav").start()
+		config.set('gnosis_egg', 1)	   
+		
+	
 # Detect journal events
 def journal_entry_wrapper(cmdr, is_beta, system, station, entry, state):
 
@@ -983,6 +993,10 @@ def journal_entry_wrapper(cmdr, is_beta, system, station, entry, state):
 	faction_kill(cmdr, is_beta, system, station, entry, state)
 	refugee_mission(cmdr, is_beta, system, station, entry, state)
 	
+	
+	
+	if entry['event'] == "SupercruiseExit" and entry["Body"] == "The Gnosis" and entry["BodyType"] == "Station":
+		this.frame.after(20000,lambda: play_gnosis_egg())
 	
 	if entry['event'] == 'USSDrop':
 		this.ussInator.ussDrop(cmdr, system, station, entry)
