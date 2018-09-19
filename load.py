@@ -28,7 +28,7 @@ this = sys.modules[__name__]
 this.s = None
 this.prep = {}
 #this.debuglevel=2
-this.version="4.4.3"
+this.version="4.4.4"
 
 import re
 
@@ -480,9 +480,9 @@ class USSDetector:
 		if self.uss:
 			#This is a USS drop set back to false
 			self.uss=False
-						
-			if self.jumped == False:
-				self.sysx,self.sysy,self.sysz=edsmGetSystem(system)
+					
+			
+			self.sysx,self.sysy,self.sysz=edsmGetSystem(system)
 				
 				
 			dmerope=getDistanceMerope(self.sysx,self.sysy,self.sysz)
@@ -496,6 +496,7 @@ class USSDetector:
 			url = "https://docs.google.com/forms/d/e/1FAIpQLScVk2LW6EkIW3hL8EhuLVI5j7jQ1ZmsYCLRxgCZlpHiN8JdcA/formResponse?usp=pp_url&entry.1236915632="+str(this.guid)+"&entry.106150081="+cmdr+"&entry.582675236="+quote_plus(entry['StarSystem'])+"&entry.158339236="+str(self.sysx)+"&entry.608639155="+str(self.sysy)+"&entry.1737639503="+str(self.sysz)+"&entry.413701316="+quote_plus(entry['Body'])+"&entry.1398738264="+str(dsol)+"&entry.922392846="+str(dmerope)+"&entry.218543806="+quote_plus(self.usstype)+"&entry.455413428="+quote_plus(self.usslocal)+"&entry.790504343="+quote_plus(self.threat)+"&submit=Submit"
 			#print url
 			Reporter(url).start()
+		self.uss=False
 			
 def v2n(v):
 	major,minor,point=v.split('.')
