@@ -23,6 +23,7 @@ from config import applongname, appversion
 import myNotebook as nb
 from config import config
 import csv
+import re
 
 this = sys.modules[__name__]
 this.s = None
@@ -30,7 +31,8 @@ this.prep = {}
 #this.debuglevel=2
 this.version="4.4.4"
 
-import re
+this.systemCache={ "Sol": (0,0,0) }
+
 
 #for 
 def _callback(matches):
@@ -492,7 +494,7 @@ class USSDetector:
 			# lets calculate how long it too before you saw that USS
 			minutes=dateDiffMinutes(self.arrival,self.timestamp)
 			debug("Minutes before USS = "+str(minutes),2)
-								
+											
 			url = "https://docs.google.com/forms/d/e/1FAIpQLScVk2LW6EkIW3hL8EhuLVI5j7jQ1ZmsYCLRxgCZlpHiN8JdcA/formResponse?usp=pp_url&entry.1236915632="+str(this.guid)+"&entry.106150081="+cmdr+"&entry.582675236="+quote_plus(entry['StarSystem'])+"&entry.158339236="+str(self.sysx)+"&entry.608639155="+str(self.sysy)+"&entry.1737639503="+str(self.sysz)+"&entry.413701316="+quote_plus(entry['Body'])+"&entry.1398738264="+str(dsol)+"&entry.922392846="+str(dmerope)+"&entry.218543806="+quote_plus(self.usstype)+"&entry.455413428="+quote_plus(self.usslocal)+"&entry.790504343="+quote_plus(self.threat)+"&submit=Submit"
 			#print url
 			Reporter(url).start()
@@ -500,7 +502,6 @@ class USSDetector:
 			
 def v2n(v):
 	major,minor,point=v.split('.')
-	debug(int("%(major)03d%(minor)03d%(point)03d" % {"major": int(major), "minor": int(minor), "point": int(point)}))
 	r = int("%(major)03d%(minor)03d%(point)03d" % {"major": int(major), "minor": int(minor), "point": int(point)})
 	return r			
 				
@@ -588,8 +589,7 @@ class news:
 		for line in versions.content.split("\r\n"):
 			rec=line.split("\t")
 			if rec[0] == 'EDMC-USS-Survey' and v2n(rec[1]) > v2n(this.version):
-				debug(v2n(rec[1]))
-				debug(v2n(this.version))
+				
 				this.newsitem["text"] = "Please upgrade USS Survey to release; "+rec[1]
 				this.newsitem["url"] = rec[2]
 				this.newsitem.grid()	
@@ -718,12 +718,6 @@ def debug(value,level=None):
 
 
 def getDistance(x1,y1,z1,x2,y2,z2):
-	debug(x1,2)
-	debug(y1,2)
-	debug(z1,2)
-	debug(x2,2)
-	debug(y2,2)
-	debug(z2,2)
 	return round(sqrt(pow(float(x2)-float(x1),2)+pow(float(y2)-float(y1),2)+pow(float(z2)-float(z1),2)),2)
 	
 def get_patrol():
@@ -966,13 +960,24 @@ def findNearest(jumpsystem,list):
 	
 	return nearest,n,list[nearest]["instructions"],list[nearest]["visits"],list[nearest]["x"],list[nearest]["y"],list[nearest]["z"]
 
+def setSystem(system,x,y,z):
+	this.systemCache[system]=(x,y,z)
+	
 def edsmGetSystem(system):
-	url = 'https://www.edsm.net/api-v1/system?systemName='+quote_plus(system)+'&showCoordinates=1'		
-	#print url
-	r = requests.get(url)
-	s =  r.json()
-	#print s
-	return s["coords"]["x"],s["coords"]["y"],s["coords"]["z"]
+	debug(this.systemCache)
+	if this.systemCache.has_key(system):
+		debug("using system cache")
+		return this.systemCache[system]
+		
+	else:
+		url = 'https://www.edsm.net/api-v1/system?systemName='+quote_plus(system)+'&showCoordinates=1'		
+		#print url
+		r = requests.get(url)
+		s =  r.json()
+		#print s
+		debug("populating cache")
+		this.systemCache[system]=(s["coords"]["x"],s["coords"]["y"],s["coords"]["z"])
+		return s["coords"]["x"],s["coords"]["y"],s["coords"]["z"]
 
 def getDistanceMerope(x1,y1,z1):
 	return round(sqrt(pow(float(-78.59375)-float(x1),2)+pow(float( -149.625)-float(y1),2)+pow(float(-340.53125)-float(z1),2)),2)		
@@ -1037,6 +1042,7 @@ def journal_entry_wrapper(cmdr, is_beta, system, station, entry, state):
 	
 	if entry['event'] == 'FSDJump':
 		
+		setSystem(entry["StarSystem"],entry["StarPos"][0],entry["StarPos"][1],entry["StarPos"][2])
 		debug("FSDJump",2)
 		debug(entry,2)
 			
@@ -1047,8 +1053,9 @@ def journal_entry_wrapper(cmdr, is_beta, system, station, entry, state):
 	
 	if entry['event'] == 'Location':
 		this.patrolZone.Location(cmdr, system, station, entry)
+		setSystem(system,entry["StarPos"][0],entry["StarPos"][1],entry["StarPos"][2])
 		
-	if entry['event'] == 'StartUp':
+	if entry['event'] == '1G':
 		this.patrolZone.startUp(cmdr, system, station, entry)		
 		
 
@@ -1111,7 +1118,6 @@ def statistics(cmdr, is_beta, system, station, entry, state):
 def startup_stats(cmdr):
 	try:
 		this.first_event
-		debug("First Event",2)
 	except:
 		this.first_event = True
 		url="https://docs.google.com/forms/d/e/1FAIpQLSeuH9Rvt5mw9PGDZLtI6lAoanx5SOq_PKXjr7iPtRBP2QK_vg/formResponse?usp=pp_url"
