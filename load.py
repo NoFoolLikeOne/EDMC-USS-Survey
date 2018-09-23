@@ -29,7 +29,7 @@ this = sys.modules[__name__]
 this.s = None
 this.prep = {}
 #this.debuglevel=2
-this.version="4.4.4"
+this.version="4.4.5"
 
 this.systemCache={ "Sol": (0,0,0) }
 
