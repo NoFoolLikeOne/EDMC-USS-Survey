@@ -16,7 +16,7 @@ import webbrowser
 import threading
 from winsound import *
 import ctypes
-from widgets import SelfWrappingHyperlinkLabel
+
 
 
 from config import applongname, appversion
@@ -44,6 +44,21 @@ def _callback(matches):
 
 def decode_unicode_references(data):
     return re.sub("&#(\d+)(;|(?=\s))", _callback, data)
+	
+	
+class SelfWrappingHyperlinkLabel(HyperlinkLabel):
+    "Tries to adjust its width."
+
+    def __init__(self, *a, **kw):
+        "Init."
+
+        HyperlinkLabel.__init__(self, *a, **kw)
+        self.frame=a[0]
+        self.frame.bind('<Configure>', self.__configure_event)		
+
+    def __configure_event(self, event):
+        "Handle resizing."
+        self.configure(wraplength=event.width-2)	
 
 #data = "U.S. Adviser&#8217;s Blunt Memo on Iraq: Time &#8216;to Go Home&#8217;"
 #print decode_unicode_references(data)
