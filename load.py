@@ -314,6 +314,7 @@ class CanonnReport:
 		self.cyclops=0
 		self.basilisk=0
 		self.medusa=0
+		self.hydra=0
 		self.cobra=0
 		
 	def setThreat(self,threat):
@@ -347,6 +348,10 @@ class CanonnReport:
 	def incMedusa(self):
 		self.medusa+=1	
 		self.setReport()
+
+	def incHydra(self):
+		self.hydra+=1	
+		self.setReport()		
 		
 	def setSpace(self):
 		self.probe=0
@@ -355,6 +360,7 @@ class CanonnReport:
 		self.cyclops=0
 		self.basilisk=0
 		self.medusa=0
+		self.hydra=0
 		self.cobra=0
 		self.setReport()
 		
@@ -382,6 +388,7 @@ class CanonnReport:
 		this.BASILISK.grid_remove()
 		this.CYCLOPS.grid_remove()
 		this.MEDUSA.grid_remove()
+		this.HYDRA.grid_remove()
 		this.PROBE.grid_remove()
 		this.SCOUT.grid_remove()
 		this.SENSOR.grid_remove()
@@ -406,6 +413,7 @@ class CanonnReport:
 			this.BASILISK.grid()
 			this.CYCLOPS.grid()
 			this.MEDUSA.grid()
+			this.HYDRA.grid()
 			this.PROBE.grid()
 			this.SCOUT.grid()
 			this.SENSOR.grid()
@@ -426,6 +434,7 @@ class CanonnReport:
 		url+="&entry.265020225="+str(self.cyclops)
 		url+="&entry.598670618="+str(self.basilisk)
 		url+="&entry.950835942="+str(self.medusa)	
+		url+="&entry.257267572="+str(self.hydra)	
 		url+="&entry.1268549011="+str(self.cobra)
 		url+="&entry.1201289190=No"
 		url+="&entry.1758654357="+str(this.guid)+"&submit=Submit"
@@ -447,8 +456,9 @@ class CanonnReport:
 		self.report=self.getThings(self.report,"cyclops",self.cyclops)
 		self.report=self.getThings(self.report,"basilisk",self.basilisk)
 		self.report=self.getThings(self.report,"medusa",self.medusa)
+		self.report=self.getThings(self.report,"hydra",self.hydra)		
 		self.report=self.getThings(self.report,"human ship",self.cobra)
-		if self.probe+self.sensor+self.scout+self.cyclops+self.basilisk+self.medusa+self.cobra == 0:
+		if self.probe+self.sensor+self.scout+self.cyclops+self.basilisk+self.medusa+self.cobra+self.hydra == 0:
 			self.report=self.report+" click icons to report thargoids"
 		self.label["text"]=self.report
 		self.label["url"]=self.getUrl("viewform")
@@ -821,6 +831,7 @@ def plugin_start():
 	this._IMG_BASILISK = tk.PhotoImage(file = plugin_dir()+'\\Icons\\LCU_Basilisk_25px.gif')
 	this._IMG_CYCLOPS = tk.PhotoImage(file = plugin_dir()+'\\Icons\\LCU_Cyclops_25px.gif')
 	this._IMG_MEDUSA = tk.PhotoImage(file = plugin_dir()+'\\Icons\\LCU_Medusa_25px.gif')
+	this._IMG_HYDRA = tk.PhotoImage(file = plugin_dir()+'\\Icons\\LCU_Hydra_25px.gif')
 	this._IMG_PROBE = tk.PhotoImage(file = plugin_dir()+'\\Icons\\LCU_Probe_25px.gif')
 	this._IMG_SCOUT = tk.PhotoImage(file = plugin_dir()+'\\Icons\\LCU_Scout_25px_1.gif')
 	this._IMG_SENSOR = tk.PhotoImage(file = plugin_dir()+'\Icons\\LCU_Sensor_25px.gif')
@@ -888,6 +899,7 @@ def plugin_app(parent):
 	this.BASILISK = tk.Button(this.buttonbar, anchor=tk.W, image=this._IMG_BASILISK, command=canonnReport.incBasilisk)
 	this.CYCLOPS = tk.Button(this.buttonbar, anchor=tk.W, image=this._IMG_CYCLOPS, command=canonnReport.incCyclops)
 	this.MEDUSA = tk.Button(this.buttonbar, anchor=tk.W, image=this._IMG_MEDUSA, command=canonnReport.incMedusa)
+	this.HYDRA = tk.Button(this.buttonbar, anchor=tk.W, image=this._IMG_HYDRA, command=canonnReport.incHydra)
 	this.PROBE = tk.Button(this.buttonbar, anchor=tk.W, image=this._IMG_PROBE, command=canonnReport.incProbe)
 	this.SCOUT = tk.Button(this.buttonbar, anchor=tk.W, image=this._IMG_SCOUT, command=canonnReport.incScout)
 	this.SENSOR = tk.Button(this.buttonbar, anchor=tk.W, image=this._IMG_SENSOR, command=canonnReport.incSensor)
@@ -905,12 +917,14 @@ def plugin_app(parent):
 	this.CYCLOPS.grid(row = 0, column = 4, sticky=tk.W)
 	this.BASILISK.grid(row = 0, column = 5, sticky=tk.W)
 	this.MEDUSA.grid(row = 0, column = 6, sticky=tk.W)
-	this.COBRA.grid(row = 0, column = 7, sticky=tk.W)
-	this.TRANSMIT.grid(row = 0, column = 8, sticky=tk.W)
+	this.HYDRA.grid(row = 0, column = 7, sticky=tk.W)	
+	this.COBRA.grid(row = 0, column = 8, sticky=tk.W)
+	this.TRANSMIT.grid(row = 0, column = 9, sticky=tk.W)
 	
 	this.BASILISK.grid_remove()
 	this.CYCLOPS.grid_remove()
 	this.MEDUSA.grid_remove()
+	this.HYDRA.grid_remove()
 	this.PROBE.grid_remove()
 	this.SCOUT.grid_remove()
 	this.SENSOR.grid_remove()
