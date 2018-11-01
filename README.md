@@ -1,6 +1,8 @@
 # USS Survey 
 An EDMC Plugin that logs USS and Hyperdiction details through a google form to a spreadsheet.
 
+It also automatically records Thargoid Kills which can be views at the [Canonn Lab69 Website](https://canonn.science/lab-69-xia/)
+
 * Displays nearest patrol system prioritise by least visited.
 * User can click on patrol location to view in EDSM
 * User can click on clipboard icon to copy to clipboard
