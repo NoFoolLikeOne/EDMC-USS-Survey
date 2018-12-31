@@ -33,6 +33,13 @@ this.version="4.5.0"
 
 this.systemCache={ "Sol": (0,0,0) }
 
+this.nearloc = {
+   'Latitude' : None,
+   'Longitude' : None,
+   'Altitude' : None,
+   'Heading' : None,
+   'Time' : None
+}
 
 #for 
 def _callback(matches):
@@ -880,6 +887,9 @@ def journal_entry(cmdr, is_beta, system, station, entry, state):
 
     startup_stats(cmdr)
     
+    if ('Body' in entry):
+            this.body_name = entry['Body']    
+    
     if config.getint("Anonymous") >0:
         commander="Anonymous"
     else:
@@ -904,7 +914,7 @@ def journal_entry_wrapper(cmdr, is_beta, system, station, entry, state):
     
     faction_kill(cmdr, is_beta, system, station, entry, state)
     refugee_mission(cmdr, is_beta, system, station, entry, state)
-    
+    CodexEntry(cmdr, is_beta, system, station, entry, state)
     
     
     if entry['event'] == "SupercruiseExit" and entry["Body"] == "The Gnosis" and entry["BodyType"] == "Station":
@@ -981,6 +991,43 @@ def faction_kill(cmdr, is_beta, system, station, entry, state):
             url+="&entry.576102634="+quote_plus(entry["AwardingFaction"])
             url+="&entry.691973931="+quote_plus(entry["VictimFaction"])
             Reporter(url).start()
+
+def CodexEntry(cmdr, is_beta, system, station, entry, state):
+    #{ "timestamp":"2018-12-30T00:48:12Z", "event":"CodexEntry", "EntryID":2100301, "Name":"$Codex_Ent_Cone_Name;", "Name_Localised":"Bark Mounds", "SubCategory":"$Codex_SubCategory_Organic_Structures;", "SubCategory_Localised":"Organic structures", "Category":"$Codex_Category_Biology;", "Category_Localised":"Biological and Geological", "Region":"$Codex_RegionName_18;", "Region_Localised":"Inner Orion Spur", "System":"HIP 16378", "SystemAddress":1, "VoucherAmount":2500 }
+    if entry['event'] == "CodexEntry":
+        debug("CodexEntry",2)
+        debug(entry)
+        x,y,z=edsmGetSystem(system)
+        url="https://docs.google.com/forms/d/e/1FAIpQLSfdr7GFj6JJ1ubeRXP_uZu3Xx9HPYT6507lRLqqC0oUZyj-Jg/formResponse?usp=pp_url"
+        
+        url+="&entry.1415400073="+quote_plus(cmdr);
+        url+="&entry.1860059185="+quote_plus(system)
+        url+="&entry.810133478="+str(x)
+        url+="&entry.226558470="+str(y)
+        url+="&entry.1643947574="+str(z)
+        if this.body_name:
+            url+="&entry.1432569164="+quote_plus(this.body_name)
+        if this.nearloc['Latitude']:
+            url+="&entry.1891952962="+str(this.nearloc['Latitude'])
+            url+="&entry.405491858="+str(this.nearloc['Longitude'])
+        url+="&entry.1531581549="+quote_plus(str(entry["EntryID"]))
+        url+="&entry.1911890028="+quote_plus(entry["Name"])
+        url+="&entry.1057995915="+quote_plus(entry["Name_Localised"])
+        url+="&entry.598514572="+quote_plus(entry["SubCategory"])
+        url+="&entry.222515268="+quote_plus(entry["SubCategory_Localised"])
+        url+="&entry.198049318="+quote_plus(entry["Category"])
+        url+="&entry.348683576="+quote_plus(entry["Category_Localised"])
+        url+="&entry.761612585="+quote_plus(entry["Region"])
+        url+="&entry.216399442="+quote_plus(entry["Region_Localised"])
+        url+="&entry.1236018468="+quote_plus(str(entry["SystemAddress"]))
+        if('VoucherAmount' in entry):
+            url+="&entry.1250864566="+quote_plus(str(entry["VoucherAmount"]))
+                
+            
+        
+        Reporter(url).start()
+
+
             
 def refugee_mission(cmdr, is_beta, system, station, entry, state):          
     if entry['event'] == "MissionAccepted": 
@@ -1088,4 +1135,22 @@ def cmdr_data(data):
 # def plugin_stop():
     # debug("Destroying Clipboard",3)
     # window.destroy()
+    
+def dashboard_entry(cmdr, is_beta, entry):
+      
+    
+    this.landed = entry['Flags'] & 1<<1 and True or False
+    this.SCmode = entry['Flags'] & 1<<4 and True or False
+    this.SRVmode = entry['Flags'] & 1<<26 and True or False
+    this.landed = this.landed or this.SRVmode
+      #print "LatLon = {}".format(entry['Flags'] & 1<<21 and True or False)
+      #print entry
+    if(entry['Flags'] & 1<<21 and True or False):
+        if('Latitude' in entry):
+            this.nearloc['Latitude'] = entry['Latitude']
+            this.nearloc['Longitude'] = entry['Longitude']
+    else:
+        this.body_name = None
+        this.nearloc['Latitude'] = None
+        this.nearloc['Longitude'] = None    
     
