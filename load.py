@@ -1043,25 +1043,52 @@ def refugee_mission(cmdr, is_beta, system, station, entry, state):
                 Reporter(url).start()
         
 
+## I want to avoid sending this event if there has not been any change
+## so we will have a global dict
 
+this.tg_stats = {
+    "tg_encounter_wakes": 0,
+    "tg_encounter_imprint": 0,
+    "tg_encounter_total": 0,
+    "tg_timestamp": 'x',
+    "tg_scout_count": 0,
+    "tg_last_system": "x"
+}
+
+        
         
 def statistics(cmdr, is_beta, system, station, entry, state):
     if entry['event'] == "Statistics":
-        url="https://docs.google.com/forms/d/e/1FAIpQLScF_URtGFf1-CyMNr4iuTHkxyxOMWcrZ2ZycrKAiej0eC-hTA/formResponse?usp=pp_url"
-        url+="&entry.613206362="+quote_plus(cmdr)
-        if "TG_ENCOUNTER_WAKES" in entry['TG_ENCOUNTERS']:
-            url+="&entry.1085684396="+str(entry['TG_ENCOUNTERS']["TG_ENCOUNTER_WAKES"])
-        if "TG_ENCOUNTER_IMPRINT" in entry['TG_ENCOUNTERS']:
-            url+="&entry.2026302508="+str(entry['TG_ENCOUNTERS']["TG_ENCOUNTER_IMPRINT"])
-        if "TG_ENCOUNTER_TOTAL" in entry['TG_ENCOUNTERS']:
-            url+="&entry.1600696255="+str(entry['TG_ENCOUNTERS']["TG_ENCOUNTER_TOTAL"])
-        if "TG_ENCOUNTER_TOTAL_LAST_TIMESTAMP" in entry['TG_ENCOUNTERS']:
-            url+="&entry.712826938="+str(entry['TG_ENCOUNTERS']["TG_ENCOUNTER_TOTAL_LAST_TIMESTAMP"])
-        if "TG_SCOUT_COUNT" in entry['TG_ENCOUNTERS']:
-            url+="&entry.1384358412="+str(entry['TG_ENCOUNTERS']["TG_SCOUT_COUNT"])
-        if "TG_ENCOUNTER_TOTAL_LAST_SYSTEM" in entry['TG_ENCOUNTERS']:
-            url+="&entry.1091946522="+str(entry['TG_ENCOUNTERS']["TG_ENCOUNTER_TOTAL_LAST_SYSTEM"])
-        Reporter(url).start()
+        tge=entry.get('TG_ENCOUNTERS')
+        new_tg_stats = {
+            "tg_encounter_wakes": tge.get("TG_ENCOUNTER_WAKES"),
+            "tg_encounter_imprint": tge.get("TG_ENCOUNTER_IMPRINT"),
+            "tg_encounter_total": tge.get("TG_ENCOUNTER_TOTAL"),
+            "tg_timestamp": tge.get("TG_ENCOUNTER_TOTAL_LAST_TIMESTAMP"),
+            "tg_scout_count": tge.get("TG_SCOUT_COUNT"),
+            "tg_last_system": tge.get("TG_ENCOUNTER_TOTAL_LAST_SYSTEM")
+        }
+        if new_tg_stats == this.tg_stats:
+            debug("TG Stats unchanged",2)
+        else:
+            debug("TG Stats changed",2)
+            this.tg_stats=new_tg_stats
+            url="https://docs.google.com/forms/d/e/1FAIpQLScF_URtGFf1-CyMNr4iuTHkxyxOMWcrZ2ZycrKAiej0eC-hTA/formResponse?usp=pp_url"
+            url+="&entry.613206362="+quote_plus(cmdr)
+            if "TG_ENCOUNTER_WAKES" in entry['TG_ENCOUNTERS']:
+                url+="&entry.1085684396="+str(entry['TG_ENCOUNTERS']["TG_ENCOUNTER_WAKES"])
+            if "TG_ENCOUNTER_IMPRINT" in entry['TG_ENCOUNTERS']:
+                url+="&entry.2026302508="+str(entry['TG_ENCOUNTERS']["TG_ENCOUNTER_IMPRINT"])
+            if "TG_ENCOUNTER_TOTAL" in entry['TG_ENCOUNTERS']:
+                url+="&entry.1600696255="+str(entry['TG_ENCOUNTERS']["TG_ENCOUNTER_TOTAL"])
+            if "TG_ENCOUNTER_TOTAL_LAST_TIMESTAMP" in entry['TG_ENCOUNTERS']:
+                url+="&entry.712826938="+str(entry['TG_ENCOUNTERS']["TG_ENCOUNTER_TOTAL_LAST_TIMESTAMP"])
+            if "TG_SCOUT_COUNT" in entry['TG_ENCOUNTERS']:
+                url+="&entry.1384358412="+str(entry['TG_ENCOUNTERS']["TG_SCOUT_COUNT"])
+            if "TG_ENCOUNTER_TOTAL_LAST_SYSTEM" in entry['TG_ENCOUNTERS']:
+                url+="&entry.1091946522="+str(entry['TG_ENCOUNTERS']["TG_ENCOUNTER_TOTAL_LAST_SYSTEM"])
+            Reporter(url).start()
+            
         
 def startup_stats(cmdr):
     try:
