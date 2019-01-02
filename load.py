@@ -29,10 +29,19 @@ this = sys.modules[__name__]
 this.s = None
 this.prep = {}
 #this.debuglevel=2
-this.version="4.5.0"
+this.version="4.6.0"
+
+this.fss= {}
 
 this.systemCache={ "Sol": (0,0,0) }
 
+this.nearloc = {
+   'Latitude' : None,
+   'Longitude' : None,
+   'Altitude' : None,
+   'Heading' : None,
+   'Time' : None
+}
 
 #for 
 def _callback(matches):
@@ -343,25 +352,42 @@ class USSDetector:
     def FSSDetect(self,cmdr, system, station, entry):
         debug("FSSDetect",2)
         
-        usstype=entry['USSType']
-        usslocal=entry['USSType_Localised']
-        threat=str(entry['ThreatLevel'])
-        self.sysx,self.sysy,self.sysz=edsmGetSystem(system)
-                
-                
-        dmerope=getDistanceMerope(self.sysx,self.sysy,self.sysz)
-        dsol=getDistanceSol(self.sysx,self.sysy,self.sysz)
+        try:
+            globalfss=fss.get(system)
+            oldthreat=globalfss.get(entry.get("ThreatLevel"))
+        except:
+            oldthreat=False
         
-                                    
-        url = "https://docs.google.com/forms/d/e/1FAIpQLScVk2LW6EkIW3hL8EhuLVI5j7jQ1ZmsYCLRxgCZlpHiN8JdcA/formResponse?usp=pp_url&entry.1236915632="+str(this.guid)+"&entry.106150081="+cmdr+"&entry.582675236="+quote_plus(system)+"&entry.158339236="+str(self.sysx)+"&entry.608639155="+str(self.sysy)+"&entry.1737639503="+str(self.sysz)+"&entry.1398738264="+str(dsol)+"&entry.922392846="+str(dmerope)+"&entry.218543806="+quote_plus(usstype)+"&entry.455413428="+quote_plus(usslocal)+"&entry.790504343="+quote_plus(threat)+"&submit=Submit"
-            #print url
-        Reporter(url).start()        
-        url="https://docs.google.com/forms/d/e/1FAIpQLSeOBbUTiD64FyyzkIeZfO5UMfqeuU2lsRf3_Ulh7APddd91JA/formResponse?usp=pp_url"
-        url+="&entry.306505776="+quote_plus(system)
-        url+="&entry.1559250350=Non Human Signal"
-        url+="&entry.1031843658="+str(threat)
-        url+="&entry.1519036101="+quote_plus(cmdr)
-        Reporter(url).start()        
+        if oldthreat==True:
+            debug("Threat level already recorded here "+str(entry.get("ThreatLevel")))
+        else:
+            try:
+                fss[system][entry.get("ThreatLevel")] =  True
+            except:
+                fss[system]={ entry.get("ThreatLevel"): True}
+          
+                
+            debug("Recording threat level "+str(entry.get("ThreatLevel")))
+            debug(fss)
+            usstype=entry['USSType']
+            usslocal=entry['USSType_Localised']
+            threat=str(entry['ThreatLevel'])
+            self.sysx,self.sysy,self.sysz=edsmGetSystem(system)
+                    
+                    
+            dmerope=getDistanceMerope(self.sysx,self.sysy,self.sysz)
+            dsol=getDistanceSol(self.sysx,self.sysy,self.sysz)
+            
+                                        
+            url = "https://docs.google.com/forms/d/e/1FAIpQLScVk2LW6EkIW3hL8EhuLVI5j7jQ1ZmsYCLRxgCZlpHiN8JdcA/formResponse?usp=pp_url&entry.1236915632="+str(this.guid)+"&entry.106150081="+cmdr+"&entry.582675236="+quote_plus(system)+"&entry.158339236="+str(self.sysx)+"&entry.608639155="+str(self.sysy)+"&entry.1737639503="+str(self.sysz)+"&entry.1398738264="+str(dsol)+"&entry.922392846="+str(dmerope)+"&entry.218543806="+quote_plus(usstype)+"&entry.455413428="+quote_plus(usslocal)+"&entry.790504343="+quote_plus(threat)+"&submit=Submit"
+                #print url
+            Reporter(url).start()        
+            url="https://docs.google.com/forms/d/e/1FAIpQLSeOBbUTiD64FyyzkIeZfO5UMfqeuU2lsRf3_Ulh7APddd91JA/formResponse?usp=pp_url"
+            url+="&entry.306505776="+quote_plus(system)
+            url+="&entry.1559250350=Non Human Signal"
+            url+="&entry.1031843658="+str(threat)
+            url+="&entry.1519036101="+quote_plus(cmdr)
+            Reporter(url).start()        
         
             
     def SupercruiseExit(self,cmdr, system, station, entry):
@@ -880,6 +906,9 @@ def journal_entry(cmdr, is_beta, system, station, entry, state):
 
     startup_stats(cmdr)
     
+    if ('Body' in entry):
+            this.body_name = entry['Body']    
+    
     if config.getint("Anonymous") >0:
         commander="Anonymous"
     else:
@@ -904,7 +933,7 @@ def journal_entry_wrapper(cmdr, is_beta, system, station, entry, state):
     
     faction_kill(cmdr, is_beta, system, station, entry, state)
     refugee_mission(cmdr, is_beta, system, station, entry, state)
-    
+    CodexEntry(cmdr, is_beta, system, station, entry, state)
     
     
     if entry['event'] == "SupercruiseExit" and entry["Body"] == "The Gnosis" and entry["BodyType"] == "Station":
@@ -981,6 +1010,43 @@ def faction_kill(cmdr, is_beta, system, station, entry, state):
             url+="&entry.576102634="+quote_plus(entry["AwardingFaction"])
             url+="&entry.691973931="+quote_plus(entry["VictimFaction"])
             Reporter(url).start()
+
+def CodexEntry(cmdr, is_beta, system, station, entry, state):
+    #{ "timestamp":"2018-12-30T00:48:12Z", "event":"CodexEntry", "EntryID":2100301, "Name":"$Codex_Ent_Cone_Name;", "Name_Localised":"Bark Mounds", "SubCategory":"$Codex_SubCategory_Organic_Structures;", "SubCategory_Localised":"Organic structures", "Category":"$Codex_Category_Biology;", "Category_Localised":"Biological and Geological", "Region":"$Codex_RegionName_18;", "Region_Localised":"Inner Orion Spur", "System":"HIP 16378", "SystemAddress":1, "VoucherAmount":2500 }
+    if entry['event'] == "CodexEntry":
+        debug("CodexEntry",2)
+        debug(entry)
+        x,y,z=edsmGetSystem(system)
+        url="https://docs.google.com/forms/d/e/1FAIpQLSfdr7GFj6JJ1ubeRXP_uZu3Xx9HPYT6507lRLqqC0oUZyj-Jg/formResponse?usp=pp_url"
+        
+        url+="&entry.1415400073="+quote_plus(cmdr);
+        url+="&entry.1860059185="+quote_plus(system)
+        url+="&entry.810133478="+str(x)
+        url+="&entry.226558470="+str(y)
+        url+="&entry.1643947574="+str(z)
+        if this.body_name:
+            url+="&entry.1432569164="+quote_plus(this.body_name)
+        if this.nearloc['Latitude']:
+            url+="&entry.1891952962="+str(this.nearloc['Latitude'])
+            url+="&entry.405491858="+str(this.nearloc['Longitude'])
+        url+="&entry.1531581549="+quote_plus(str(entry["EntryID"]))
+        url+="&entry.1911890028="+quote_plus(entry["Name"])
+        url+="&entry.1057995915="+quote_plus(entry["Name_Localised"])
+        url+="&entry.598514572="+quote_plus(entry["SubCategory"])
+        url+="&entry.222515268="+quote_plus(entry["SubCategory_Localised"])
+        url+="&entry.198049318="+quote_plus(entry["Category"])
+        url+="&entry.348683576="+quote_plus(entry["Category_Localised"])
+        url+="&entry.761612585="+quote_plus(entry["Region"])
+        url+="&entry.216399442="+quote_plus(entry["Region_Localised"])
+        url+="&entry.1236018468="+quote_plus(str(entry["SystemAddress"]))
+        if('VoucherAmount' in entry):
+            url+="&entry.1250864566="+quote_plus(str(entry["VoucherAmount"]))
+                
+            
+        
+        Reporter(url).start()
+
+
             
 def refugee_mission(cmdr, is_beta, system, station, entry, state):          
     if entry['event'] == "MissionAccepted": 
@@ -996,25 +1062,52 @@ def refugee_mission(cmdr, is_beta, system, station, entry, state):
                 Reporter(url).start()
         
 
+## I want to avoid sending this event if there has not been any change
+## so we will have a global dict
 
+this.tg_stats = {
+    "tg_encounter_wakes": 0,
+    "tg_encounter_imprint": 0,
+    "tg_encounter_total": 0,
+    "tg_timestamp": 'x',
+    "tg_scout_count": 0,
+    "tg_last_system": "x"
+}
+
+        
         
 def statistics(cmdr, is_beta, system, station, entry, state):
     if entry['event'] == "Statistics":
-        url="https://docs.google.com/forms/d/e/1FAIpQLScF_URtGFf1-CyMNr4iuTHkxyxOMWcrZ2ZycrKAiej0eC-hTA/formResponse?usp=pp_url"
-        url+="&entry.613206362="+quote_plus(cmdr)
-        if "TG_ENCOUNTER_WAKES" in entry['TG_ENCOUNTERS']:
-            url+="&entry.1085684396="+str(entry['TG_ENCOUNTERS']["TG_ENCOUNTER_WAKES"])
-        if "TG_ENCOUNTER_IMPRINT" in entry['TG_ENCOUNTERS']:
-            url+="&entry.2026302508="+str(entry['TG_ENCOUNTERS']["TG_ENCOUNTER_IMPRINT"])
-        if "TG_ENCOUNTER_TOTAL" in entry['TG_ENCOUNTERS']:
-            url+="&entry.1600696255="+str(entry['TG_ENCOUNTERS']["TG_ENCOUNTER_TOTAL"])
-        if "TG_ENCOUNTER_TOTAL_LAST_TIMESTAMP" in entry['TG_ENCOUNTERS']:
-            url+="&entry.712826938="+str(entry['TG_ENCOUNTERS']["TG_ENCOUNTER_TOTAL_LAST_TIMESTAMP"])
-        if "TG_SCOUT_COUNT" in entry['TG_ENCOUNTERS']:
-            url+="&entry.1384358412="+str(entry['TG_ENCOUNTERS']["TG_SCOUT_COUNT"])
-        if "TG_ENCOUNTER_TOTAL_LAST_SYSTEM" in entry['TG_ENCOUNTERS']:
-            url+="&entry.1091946522="+str(entry['TG_ENCOUNTERS']["TG_ENCOUNTER_TOTAL_LAST_SYSTEM"])
-        Reporter(url).start()
+        tge=entry.get('TG_ENCOUNTERS')
+        new_tg_stats = {
+            "tg_encounter_wakes": tge.get("TG_ENCOUNTER_WAKES"),
+            "tg_encounter_imprint": tge.get("TG_ENCOUNTER_IMPRINT"),
+            "tg_encounter_total": tge.get("TG_ENCOUNTER_TOTAL"),
+            "tg_timestamp": tge.get("TG_ENCOUNTER_TOTAL_LAST_TIMESTAMP"),
+            "tg_scout_count": tge.get("TG_SCOUT_COUNT"),
+            "tg_last_system": tge.get("TG_ENCOUNTER_TOTAL_LAST_SYSTEM")
+        }
+        if new_tg_stats == this.tg_stats:
+            debug("TG Stats unchanged",2)
+        else:
+            debug("TG Stats changed",2)
+            this.tg_stats=new_tg_stats
+            url="https://docs.google.com/forms/d/e/1FAIpQLScF_URtGFf1-CyMNr4iuTHkxyxOMWcrZ2ZycrKAiej0eC-hTA/formResponse?usp=pp_url"
+            url+="&entry.613206362="+quote_plus(cmdr)
+            if "TG_ENCOUNTER_WAKES" in entry['TG_ENCOUNTERS']:
+                url+="&entry.1085684396="+str(entry['TG_ENCOUNTERS']["TG_ENCOUNTER_WAKES"])
+            if "TG_ENCOUNTER_IMPRINT" in entry['TG_ENCOUNTERS']:
+                url+="&entry.2026302508="+str(entry['TG_ENCOUNTERS']["TG_ENCOUNTER_IMPRINT"])
+            if "TG_ENCOUNTER_TOTAL" in entry['TG_ENCOUNTERS']:
+                url+="&entry.1600696255="+str(entry['TG_ENCOUNTERS']["TG_ENCOUNTER_TOTAL"])
+            if "TG_ENCOUNTER_TOTAL_LAST_TIMESTAMP" in entry['TG_ENCOUNTERS']:
+                url+="&entry.712826938="+str(entry['TG_ENCOUNTERS']["TG_ENCOUNTER_TOTAL_LAST_TIMESTAMP"])
+            if "TG_SCOUT_COUNT" in entry['TG_ENCOUNTERS']:
+                url+="&entry.1384358412="+str(entry['TG_ENCOUNTERS']["TG_SCOUT_COUNT"])
+            if "TG_ENCOUNTER_TOTAL_LAST_SYSTEM" in entry['TG_ENCOUNTERS']:
+                url+="&entry.1091946522="+str(entry['TG_ENCOUNTERS']["TG_ENCOUNTER_TOTAL_LAST_SYSTEM"])
+            Reporter(url).start()
+            
         
 def startup_stats(cmdr):
     try:
@@ -1088,4 +1181,22 @@ def cmdr_data(data):
 # def plugin_stop():
     # debug("Destroying Clipboard",3)
     # window.destroy()
+    
+def dashboard_entry(cmdr, is_beta, entry):
+      
+    
+    this.landed = entry['Flags'] & 1<<1 and True or False
+    this.SCmode = entry['Flags'] & 1<<4 and True or False
+    this.SRVmode = entry['Flags'] & 1<<26 and True or False
+    this.landed = this.landed or this.SRVmode
+      #print "LatLon = {}".format(entry['Flags'] & 1<<21 and True or False)
+      #print entry
+    if(entry['Flags'] & 1<<21 and True or False):
+        if('Latitude' in entry):
+            this.nearloc['Latitude'] = entry['Latitude']
+            this.nearloc['Longitude'] = entry['Longitude']
+    else:
+        this.body_name = None
+        this.nearloc['Latitude'] = None
+        this.nearloc['Longitude'] = None    
     
