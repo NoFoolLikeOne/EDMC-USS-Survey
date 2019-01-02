@@ -31,6 +31,8 @@ this.prep = {}
 #this.debuglevel=2
 this.version="4.6.0"
 
+this.fss= {}
+
 this.systemCache={ "Sol": (0,0,0) }
 
 this.nearloc = {
@@ -350,25 +352,42 @@ class USSDetector:
     def FSSDetect(self,cmdr, system, station, entry):
         debug("FSSDetect",2)
         
-        usstype=entry['USSType']
-        usslocal=entry['USSType_Localised']
-        threat=str(entry['ThreatLevel'])
-        self.sysx,self.sysy,self.sysz=edsmGetSystem(system)
-                
-                
-        dmerope=getDistanceMerope(self.sysx,self.sysy,self.sysz)
-        dsol=getDistanceSol(self.sysx,self.sysy,self.sysz)
+        try:
+            globalfss=fss.get(system)
+            oldthreat=globalfss.get(entry.get("ThreatLevel"))
+        except:
+            oldthreat=False
         
-                                    
-        url = "https://docs.google.com/forms/d/e/1FAIpQLScVk2LW6EkIW3hL8EhuLVI5j7jQ1ZmsYCLRxgCZlpHiN8JdcA/formResponse?usp=pp_url&entry.1236915632="+str(this.guid)+"&entry.106150081="+cmdr+"&entry.582675236="+quote_plus(system)+"&entry.158339236="+str(self.sysx)+"&entry.608639155="+str(self.sysy)+"&entry.1737639503="+str(self.sysz)+"&entry.1398738264="+str(dsol)+"&entry.922392846="+str(dmerope)+"&entry.218543806="+quote_plus(usstype)+"&entry.455413428="+quote_plus(usslocal)+"&entry.790504343="+quote_plus(threat)+"&submit=Submit"
-            #print url
-        Reporter(url).start()        
-        url="https://docs.google.com/forms/d/e/1FAIpQLSeOBbUTiD64FyyzkIeZfO5UMfqeuU2lsRf3_Ulh7APddd91JA/formResponse?usp=pp_url"
-        url+="&entry.306505776="+quote_plus(system)
-        url+="&entry.1559250350=Non Human Signal"
-        url+="&entry.1031843658="+str(threat)
-        url+="&entry.1519036101="+quote_plus(cmdr)
-        Reporter(url).start()        
+        if oldthreat==True:
+            debug("Threat level already recorded here "+str(entry.get("ThreatLevel")))
+        else:
+            try:
+                fss[system][entry.get("ThreatLevel")] =  True
+            except:
+                fss[system]={ entry.get("ThreatLevel"): True}
+          
+                
+            debug("Recording threat level "+str(entry.get("ThreatLevel")))
+            debug(fss)
+            usstype=entry['USSType']
+            usslocal=entry['USSType_Localised']
+            threat=str(entry['ThreatLevel'])
+            self.sysx,self.sysy,self.sysz=edsmGetSystem(system)
+                    
+                    
+            dmerope=getDistanceMerope(self.sysx,self.sysy,self.sysz)
+            dsol=getDistanceSol(self.sysx,self.sysy,self.sysz)
+            
+                                        
+            url = "https://docs.google.com/forms/d/e/1FAIpQLScVk2LW6EkIW3hL8EhuLVI5j7jQ1ZmsYCLRxgCZlpHiN8JdcA/formResponse?usp=pp_url&entry.1236915632="+str(this.guid)+"&entry.106150081="+cmdr+"&entry.582675236="+quote_plus(system)+"&entry.158339236="+str(self.sysx)+"&entry.608639155="+str(self.sysy)+"&entry.1737639503="+str(self.sysz)+"&entry.1398738264="+str(dsol)+"&entry.922392846="+str(dmerope)+"&entry.218543806="+quote_plus(usstype)+"&entry.455413428="+quote_plus(usslocal)+"&entry.790504343="+quote_plus(threat)+"&submit=Submit"
+                #print url
+            Reporter(url).start()        
+            url="https://docs.google.com/forms/d/e/1FAIpQLSeOBbUTiD64FyyzkIeZfO5UMfqeuU2lsRf3_Ulh7APddd91JA/formResponse?usp=pp_url"
+            url+="&entry.306505776="+quote_plus(system)
+            url+="&entry.1559250350=Non Human Signal"
+            url+="&entry.1031843658="+str(threat)
+            url+="&entry.1519036101="+quote_plus(cmdr)
+            Reporter(url).start()        
         
             
     def SupercruiseExit(self,cmdr, system, station, entry):
