@@ -1087,7 +1087,7 @@ def AXZone(cmdr, is_beta, system, station, entry, state):
         url+="&entry.484596368="+str(x)
         url+="&entry.1443755704="+str(y)
         url+="&entry.1285491432="+str(z)
-        url+="&entry.837147926="+str(entry["systemAddress"])
+        url+="&entry.837147926="+str(entry.get("SystemAddress"))
         
         Reporter(url).start()        
 
