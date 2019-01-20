@@ -26,16 +26,21 @@ import re
 
 from canonn import journaldata
 from canonn import factionkill
-from canonn import ussdrop
+from canonn import nhss
 from canonn import codex
+from canonn import hdreport
 
 
 
 this = sys.modules[__name__]
 this.s = None
 this.prep = {}
+# Lets capture the plugin name we want the name - "EDMC -"
+myPlugin = "USS Survey"
+
 #this.debuglevel=2
 this.version="4.7.0"
+this.client_version="{}.{}".format(myPlugin,this.version)
 
 this.body_name=None
 this.fss= {}
@@ -79,8 +84,6 @@ class SelfWrappingHyperlinkLabel(HyperlinkLabel):
 #data = "U.S. Adviser&#8217;s Blunt Memo on Iraq: Time &#8216;to Go Home&#8217;"
 #print decode_unicode_references(data)
 
-# Lets capture the plugin name we want the name - "EDMC -"
-myPlugin = "USS Survey"
 
 def plugin_prefs(parent, cmdr, is_beta):
     """
@@ -932,7 +935,7 @@ def journal_entry(cmdr, is_beta, system, station, entry, state):
         y=None
         z=None    
     
-    journal_entry_wrapper(commander, is_beta, system, station, entry, state,x,y,z,this.body_name,this.nearloc['Latitude'],this.nearloc['Longitude'])    
+    journal_entry_wrapper(commander, is_beta, system, station, entry, state,x,y,z,this.body_name,this.nearloc['Latitude'],this.nearloc['Longitude'],this.client_version)    
     
 def play_gnosis_egg():
     if config.getint("gnosis_egg") != 1 :
@@ -941,7 +944,7 @@ def play_gnosis_egg():
         
     
 # Detect journal events
-def journal_entry_wrapper(cmdr, is_beta, system, station, entry, state,x,y,z,body,lat,lon):
+def journal_entry_wrapper(cmdr, is_beta, system, station, entry, state,x,y,z,body,lat,lon,client):
 
     this.guid = uuid.uuid1()
     this.cmdr=cmdr
@@ -1006,10 +1009,12 @@ def journal_entry_wrapper(cmdr, is_beta, system, station, entry, state,x,y,z,bod
         this.patrolZone.startUp(cmdr, system, station, entry)       
 
     #Canonn API calls
-    journaldata.submit(cmdr, is_beta, system, station, entry)
-    factionkill.submit(cmdr, is_beta, system, station, entry)
-    ussdrop.submit(cmdr, is_beta, system, station, entry)
-    codex.submit(cmdr, is_beta, system, x,y,z, entry, body,lat,lon)
+    #dont load journal data
+    #journaldata.submit(cmdr, is_beta, system, station, entry,client)
+    factionkill.submit(cmdr, is_beta, system, station, entry,client)
+    nhss.submit(cmdr, is_beta, system, station, entry,client)
+    hdreport.submit(cmdr, is_beta, system, station, entry,client)
+    codex.submit(cmdr, is_beta, system, x,y,z, entry, body,lat,lon,client)
         
 
         

@@ -75,13 +75,14 @@ class CanonnJournal(threading.Thread):
     '''
         Should probably make this a heritable class as this is a repeating pattern
     '''
-    def __init__(self,cmdr, is_beta, system, station, entry):
+    def __init__(self,cmdr, is_beta, system, station, entry,client):
         threading.Thread.__init__(self)
         self.system = system
         self.cmdr = cmdr
         self.station = station
         self.is_beta = is_beta
         self.entry = entry.copy()
+        self.client = client
 
         
     def run(self):
@@ -90,6 +91,7 @@ class CanonnJournal(threading.Thread):
         payload["cmdrName"]=self.cmdr  
         payload["jsonData"]=self.entry
         payload["EventName"]=self.entry["event"]
+        payload["clientVersion"]= self.client
         
         
         included_event=(self.entry["event"] not in excluded_events)
@@ -112,5 +114,5 @@ class CanonnJournal(threading.Thread):
     journaldata.submit(cmdr, system, station, entry)
   
 '''
-def submit(cmdr, is_beta, system, station, entry):
-    CanonnJournal(cmdr, is_beta, system, station, entry).start()   
+def submit(cmdr, is_beta, system, station, entry,client):
+    CanonnJournal(cmdr, is_beta, system, station, entry,client).start()   
