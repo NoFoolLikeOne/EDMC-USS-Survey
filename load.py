@@ -18,19 +18,26 @@ from winsound import *
 import ctypes
 
 
-
 from config import applongname, appversion
 import myNotebook as nb
 from config import config
 import csv
 import re
 
+from canonn import journaldata
+from canonn import factionkill
+from canonn import ussdrop
+from canonn import codex
+
+
+
 this = sys.modules[__name__]
 this.s = None
 this.prep = {}
 #this.debuglevel=2
-this.version="4.6.0"
+this.version="4.7.0"
 
+this.body_name=None
 this.fss= {}
 
 this.systemCache={ "Sol": (0,0,0) }
@@ -753,6 +760,7 @@ def plugin_app(parent):
     
     
     this.buttonbar = tk.Frame(this.frame)
+    
     #We want three columns, label, text, button
     this.frame.columnconfigure(5, weight=1)
     this.buttonbar.columnconfigure(7, weight=1)
@@ -914,7 +922,17 @@ def journal_entry(cmdr, is_beta, system, station, entry, state):
     else:
         commander=cmdr
         
-    journal_entry_wrapper(commander, is_beta, system, station, entry, state)    
+        
+    
+    
+    if system:
+        x,y,z=edsmGetSystem(system)
+    else:
+        x=None
+        y=None
+        z=None    
+    
+    journal_entry_wrapper(commander, is_beta, system, station, entry, state,x,y,z,this.body_name,this.nearloc['Latitude'],this.nearloc['Longitude'])    
     
 def play_gnosis_egg():
     if config.getint("gnosis_egg") != 1 :
@@ -923,7 +941,7 @@ def play_gnosis_egg():
         
     
 # Detect journal events
-def journal_entry_wrapper(cmdr, is_beta, system, station, entry, state):
+def journal_entry_wrapper(cmdr, is_beta, system, station, entry, state,x,y,z,body,lat,lon):
 
     this.guid = uuid.uuid1()
     this.cmdr=cmdr
@@ -934,6 +952,8 @@ def journal_entry_wrapper(cmdr, is_beta, system, station, entry, state):
     faction_kill(cmdr, is_beta, system, station, entry, state)
     refugee_mission(cmdr, is_beta, system, station, entry, state)
     CodexEntry(cmdr, is_beta, system, station, entry, state)
+    AXZone(cmdr, is_beta, system, station, entry, state)
+
     
     
     if entry['event'] == "SupercruiseExit" and entry["Body"] == "The Gnosis" and entry["BodyType"] == "Station":
@@ -984,6 +1004,12 @@ def journal_entry_wrapper(cmdr, is_beta, system, station, entry, state):
         
     if entry['event'] == '1G':
         this.patrolZone.startUp(cmdr, system, station, entry)       
+
+    #Canonn API calls
+    journaldata.submit(cmdr, is_beta, system, station, entry)
+    factionkill.submit(cmdr, is_beta, system, station, entry)
+    ussdrop.submit(cmdr, is_beta, system, station, entry)
+    codex.submit(cmdr, is_beta, system, x,y,z, entry, body,lat,lon)
         
 
         
@@ -1046,6 +1072,24 @@ def CodexEntry(cmdr, is_beta, system, station, entry, state):
         
         Reporter(url).start()
 
+        
+def AXZone(cmdr, is_beta, system, station, entry, state):
+    #{ "timestamp":"2019-01-19T23:22:26Z", "event":"FSSSignalDiscovered", "SystemAddress":250414621860, "SignalName":"$Warzone_TG;", "SignalName_Localised":"AX Conflict Zone" }
+    if entry['event'] == "FSSSignalDiscovered" and entry["SignalName"] == "$Warzone_TG;":
+        debug("AXZone",2)
+        debug(entry)
+        x,y,z=edsmGetSystem(system)
+        url="https://docs.google.com/forms/d/e/1FAIpQLSdHFZ8Mp4EHsJH6gUqXyeWkeEUt3YOGEaOO3X8H4m-gHNYzdQ/formResponse?usp=pp_url"
+       
+        
+        url+="&entry.1257612503="+quote_plus(cmdr);
+        url+="&entry.1541680555="+quote_plus(system)
+        url+="&entry.484596368="+str(x)
+        url+="&entry.1443755704="+str(y)
+        url+="&entry.1285491432="+str(z)
+        url+="&entry.837147926="+str(entry.get("SystemAddress"))
+        
+        Reporter(url).start()        
 
             
 def refugee_mission(cmdr, is_beta, system, station, entry, state):          
