@@ -922,8 +922,15 @@ def journal_entry(cmdr, is_beta, system, station, entry, state):
     else:
         commander=cmdr
         
-    if entry["event"] in ('FSDJump','Location'):
+        
+    
+    
+    if system:
         x,y,z=edsmGetSystem(system)
+    else:
+        x=None
+        y=None
+        z=None    
     
     journal_entry_wrapper(commander, is_beta, system, station, entry, state,x,y,z,this.body_name,this.nearloc['Latitude'],this.nearloc['Longitude'])    
     
@@ -945,7 +952,7 @@ def journal_entry_wrapper(cmdr, is_beta, system, station, entry, state,x,y,z,bod
     faction_kill(cmdr, is_beta, system, station, entry, state)
     refugee_mission(cmdr, is_beta, system, station, entry, state)
     CodexEntry(cmdr, is_beta, system, station, entry, state)
-    
+    AXZone(cmdr, is_beta, system, station, entry, state)
 
     
     
@@ -1065,6 +1072,24 @@ def CodexEntry(cmdr, is_beta, system, station, entry, state):
         
         Reporter(url).start()
 
+        
+def AXZone(cmdr, is_beta, system, station, entry, state):
+    #{ "timestamp":"2019-01-19T23:22:26Z", "event":"FSSSignalDiscovered", "SystemAddress":250414621860, "SignalName":"$Warzone_TG;", "SignalName_Localised":"AX Conflict Zone" }
+    if entry['event'] == "FSSSignalDiscovered" and entry["SignalName"] == "$Warzone_TG;":
+        debug("AXZone",2)
+        debug(entry)
+        x,y,z=edsmGetSystem(system)
+        url="https://docs.google.com/forms/d/e/1FAIpQLSdHFZ8Mp4EHsJH6gUqXyeWkeEUt3YOGEaOO3X8H4m-gHNYzdQ/formResponse?usp=pp_url"
+       
+        
+        url+="&entry.1257612503="+quote_plus(cmdr);
+        url+="&entry.1541680555="+quote_plus(system)
+        url+="&entry.484596368="+str(x)
+        url+="&entry.1443755704="+str(y)
+        url+="&entry.1285491432="+str(z)
+        url+="&entry.837147926="+str(entry["systemAddress"])
+        
+        Reporter(url).start()        
 
             
 def refugee_mission(cmdr, is_beta, system, station, entry, state):          
