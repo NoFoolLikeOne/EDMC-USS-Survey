@@ -12,7 +12,7 @@ import json
 
 '''
 
-class UssDrop(threading.Thread):
+class NHSS(threading.Thread):
 
     fss= {}
     
@@ -79,24 +79,26 @@ def submit(cmdr, is_beta, system, station, entry,client):
         # see if you have system and threat levels store
         # Thsi will fail if it a new threat level in the current system
         try:
-            globalfss=UssDrop.fss.get(system)
+            globalfss=NHSS.fss.get(system)
             oldthreat=globalfss.get(threatLevel)
-            oldthreat=True
+            #print(globalfss)
         except:
             oldthreat=False
         
         
-        if oldthreat==True:
+        if oldthreat:
             print("Threat level already recorded here "+str(threatLevel))
+            
         else:
+            #print("Threat {}".format(threatLevel))
             try:
                 #set the threatlevel for the system
-                UssDrop.fss[system][entry.get("ThreatLevel")] =  True
+                NHSS.fss[system][threatLevel] =  True
             except:
                 #we couldnt find teh system so lets define it
-                UssDrop.fss[system]={ threatLevel: True}
+                NHSS.fss[system]={ threatLevel: True}
                
-            UssDrop(cmdr, is_beta, system, station, entry,client).start()   
+            NHSS(cmdr, is_beta, system, station, entry,client).start()   
         
         
     
