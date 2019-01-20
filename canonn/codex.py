@@ -9,7 +9,7 @@ class Codex(threading.Thread):
     '''
         Should probably make this a heritable class as this is a repeating pattern
     '''
-    def __init__(self,cmdr, is_beta, system, x,y,z, entry, body,lat,lon):
+    def __init__(self,cmdr, is_beta, system, x,y,z, entry, body,lat,lon,client):
         threading.Thread.__init__(self)
         self.cmdr = cmdr
         self.system = system
@@ -22,6 +22,7 @@ class Codex(threading.Thread):
         self.lon = lon
         self.is_beta = is_beta
         self.entry = entry.copy()
+        seles.client = client
         
         
         
@@ -52,6 +53,7 @@ class Codex(threading.Thread):
         payload["voucherAmount"]=self.entry.get("VoucherAmount")
         payload["rawJson"]=self.entry
         payload["isBeta"]=self.is_beta
+        payload["clientVersion"]=self.client
             
         try:        
             r=requests.post("https://api.canonn.tech:2053/codexreports",data=json.dumps(payload),headers={"content-type":"application/json"})  
@@ -67,8 +69,8 @@ def matches(d, field, value):
     journaldata.submit(cmdr, system, station, entry)
   
 '''
-def submit(cmdr, is_beta, system, x,y,z, entry, body,lat,lon):
+def submit(cmdr, is_beta, system, x,y,z, entry, body,lat,lon,client):
     if entry["event"] == "CodexEntry":
-        Codex(cmdr, is_beta, system, x,y,z,entry, body,lat,lon).start()   
+        Codex(cmdr, is_beta, system, x,y,z,entry, body,lat,lon,client).start()   
     
     

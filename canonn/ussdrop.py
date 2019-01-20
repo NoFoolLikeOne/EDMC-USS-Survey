@@ -13,33 +13,48 @@ import json
 '''
 
 class UssDrop(threading.Thread):
+
+    fss= {}
+    
     '''
         Should probably make this a heritable class as this is a repeating pattern
     '''
-    def __init__(self,cmdr, is_beta, system, station, entry):
+    def __init__(self,cmdr, is_beta, system, station, entry,client):
         threading.Thread.__init__(self)
         self.system = system
         self.cmdr = cmdr
         self.station = station
         self.is_beta = is_beta
         self.entry = entry.copy()
+        self.client=client
 
         
     def run(self):
         payload={}
+        
+        if self.entry["event"] == 'FSSSignalDiscovered':
+            threatLevel=self.entry.get("ThreatLevel")
+            type="FSS"
+        else:
+            threatLevel=self.entry.get("USSThreat")
+            type="Drop"
+            
         payload["systemName"]=self.system
         payload["cmdrName"]=self.cmdr  
-        payload["ussRawJson"]=self.entry
-        payload["threatLevel"]=self.entry["USSThreat"]
-        payload["type"]=self.entry["USSType"][1:-1]
+        payload["nhssRawJson"]=self.entry
+        payload["threatLevel"]=threatLevel
         payload["isbeta"]= self.is_beta
+        payload["clientVersion"]= self.client
+        payload["reportStatus"]="accepted"
+        payload["reportComment"]=type
+        
             
         try:        
-            r=requests.post("https://api.canonn.tech:2053/ussreports",data=json.dumps(payload),headers={"content-type":"application/json"})  
-            print payload
-            print r
+            r=requests.post("https://api.canonn.tech:2053/nhssreports",data=json.dumps(payload),headers={"content-type":"application/json"})  
+            #print payload
+            #print r
         except:
-            print("[EDMC-Canonn] Issue posting FactionKIll " + str(sys.exc_info()[0]))                            
+            print("[EDMC-Canonn] Issue posting ussReport " + str(sys.exc_info()[0]))                            
             print r
         
 def matches(d, field, value):
@@ -50,8 +65,39 @@ def matches(d, field, value):
     journaldata.submit(cmdr, system, station, entry)
   
 '''
-def submit(cmdr, is_beta, system, station, entry):
-    if entry["event"] == "USSDrop" :
-        UssDrop(cmdr, is_beta, system, station, entry).start()   
+def submit(cmdr, is_beta, system, station, entry,client):
+    
+    #USS and FFS
+    if entry["event"] in ("USSDrop",'FSSSignalDiscovered') and entry.get("USSType") == "$USS_Type_NonHuman;" : 
+    
+        # The have different names for teh same thing so normalise
+        if entry["event"] == 'FSSSignalDiscovered':
+            threatLevel=entry.get("ThreatLevel")
+        else:
+            threatLevel=entry.get("USSThreat")
+            
+        # see if you have system and threat levels store
+        # Thsi will fail if it a new threat level in the current system
+        try:
+            globalfss=UssDrop.fss.get(system)
+            oldthreat=globalfss.get(threatLevel)
+            oldthreat=True
+        except:
+            oldthreat=False
+        
+        
+        if oldthreat==True:
+            print("Threat level already recorded here "+str(threatLevel))
+        else:
+            try:
+                #set the threatlevel for the system
+                UssDrop.fss[system][entry.get("ThreatLevel")] =  True
+            except:
+                #we couldnt find teh system so lets define it
+                UssDrop.fss[system]={ threatLevel: True}
+               
+            UssDrop(cmdr, is_beta, system, station, entry,client).start()   
+        
+        
     
 
